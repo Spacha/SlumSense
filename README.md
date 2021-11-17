@@ -18,4 +18,4 @@ Contains the project files and code fot the cloud service software. It runs in a
 Its main purpose is to offer a REST API for the gateway(s) to use for saving sensor data. The server stores the data to a MySQL database and also offers a browser-based user interface for monitoring the devices and analyzing the data.
 
 **High-level diagram of the system:**
-![](docs/highlevel_diagram.png  "High-level diagram of the system.")
+<img src="docs/highlevel_diagram.png" alt="High-level diagram of the system" width="60%"/>
