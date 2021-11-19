@@ -579,6 +579,18 @@ void twi_init (void)
     nrfx_twi_enable(&m_twi);
 }
 
+/**
+ * @brief Function for reading data from temperature sensor.
+ */
+static void read_sensor_data()
+{
+    m_xfer_done = false;
+
+    /* Read 1 byte from the specified address - skip 3 bits dedicated for fractional part of temperature. */
+    ret_code_t err_code = nrfx_twi_rx(&m_twi, BME680_ADDR, &m_sample, sizeof(m_sample));
+    APP_ERROR_CHECK(err_code);
+}
+
 // ********************************************************************
 
 
@@ -664,7 +676,10 @@ static void notification_timeout_handler(void * p_context)
 
     // ...
     */
+
+    read_sensor_data();
     
+
     // Increment the value of m_custom_value before notifing it.
     m_custom_value++;
     
