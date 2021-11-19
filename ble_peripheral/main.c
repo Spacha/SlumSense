@@ -115,6 +115,7 @@
 
 // ********************************************************************
 #define BME680_ADDR                     0x76  // TWI
+#define BME680_REG_ID                   0xD0  // READ ONLY: Chip ID of the device.
 #define BME680_REG_CTRL                 0x74
 #define BME680_REG_TEMP_MSB             0x22  // temp_msb[7:0]  < Contains the MSB part [19:12] of the raw temperature measurement output data.
 #define BME680_REG_TEMP_LSB             0x23  // temp_lsb[7:0]  < Contains the LSB part [11:14] of the raw temperature measurement output data.
@@ -584,11 +585,34 @@ void twi_init (void)
  */
 static void read_sensor_data()
 {
+    ret_code_t err_code = NRF_SUCCESS;
     m_xfer_done = false;
 
-    /* Read 1 byte from the specified address - skip 3 bits dedicated for fractional part of temperature. */
-    ret_code_t err_code = nrfx_twi_rx(&m_twi, BME680_ADDR, &m_sample, sizeof(m_sample));
+    // Read chip ID of BME680 and advertise it
+
+    uint8_t id_reg = BME680_REG_ID;
+
+    // send a message and immediately read
+    nrfx_twi_xfer_desc_t xfer = NRFX_TWI_XFER_DESC_TXRX	(
+      BME680_ADDR,        // slave address
+      &id_reg,            // tx buffer
+      sizeof(id_reg),     // tx buffer length
+      &m_sample,          // rx buffer
+      1                   //sizeof(m_twi), chip ID is 1 byte // rx buffer length
+    );
+
+    //err_code = nrfx_twi_tx(&m_twi, BME680_ADDR, &id_reg, sizeof(id_reg), true);
+    //APP_ERROR_CHECK(err_code);
+
+    NRF_LOG_INFO("Reading sensor...");
+
+    nrfx_twi_xfer(&m_twi, &xfer, NULL);
+
     APP_ERROR_CHECK(err_code);
+
+    /* Read 1 byte from the specified address - skip 3 bits dedicated for fractional part of temperature. */
+    //err_code = nrfx_twi_rx(&m_twi, BME680_ADDR, &m_sample, sizeof(m_sample));
+    //APP_ERROR_CHECK(err_code);
 }
 
 // ********************************************************************
@@ -678,10 +702,10 @@ static void notification_timeout_handler(void * p_context)
     */
 
     read_sensor_data();
-    
+    NRF_LOG_INFO("Did we wait or is this asynchronous?");
 
     // Increment the value of m_custom_value before notifing it.
-    m_custom_value++;
+    m_custom_value = m_sample;  // m_custom_value++;
     
     err_code = ble_cus_custom_value_update(&m_cus, m_custom_value);
     APP_ERROR_CHECK(err_code);
