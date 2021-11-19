@@ -78,6 +78,8 @@
 #include "nrf_ble_qwr.h"
 #include "nrf_pwr_mgmt.h"
 
+#include "nrfx_twi.h" // TWI
+
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
@@ -112,6 +114,30 @@
 #define DEAD_BEEF                       0xDEADBEEF                              /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
 // ********************************************************************
+#define BME680_ADDR                     0x76  // TWI
+#define BME680_REG_CTRL                 0x74
+#define BME680_REG_TEMP_MSB             0x22  // temp_msb[7:0]  < Contains the MSB part [19:12] of the raw temperature measurement output data.
+#define BME680_REG_TEMP_LSB             0x23  // temp_lsb[7:0]  < Contains the LSB part [11:14] of the raw temperature measurement output data.
+#define BME680_REG_TEMP_XLSB            0x24  // temp_xlsb[7:4] < Contains the XLSB part [3:0] of the raw temperature measurement output data.
+                                              //                  Contents depend on temperature resolutin controlled by oversampling setting.
+#define BME680_FORCED_MODE              0x00
+
+#define THINGY_SDA_PIN                  NRF_GPIO_PIN_MAP(1, 8) // TWI
+#define THINGY_SCL_PIN                  NRF_GPIO_PIN_MAP(1, 9) // TWI
+
+/* TWI instance ID. */
+#define TWI_INSTANCE_ID                 0
+/* Indicates if operation on TWI has ended. */
+static volatile bool m_xfer_done = false;
+
+/* TWI instance. */
+static const nrfx_twi_t m_twi = NRFX_TWI_INSTANCE(TWI_INSTANCE_ID);
+
+/* Buffer for samples read from temperature sensor. */
+static uint8_t m_sample;
+
+// TWI ^^
+
 #define BLE_UUID_TYPE_ENVIRONMENTAL_SENSING 0x181A  // Spacha
 #define BLE_APPEARANCE_MULTISENSOR      0x0552
 #define CUSTOM_SERVICE_UUID_BASE        {0xBC, 0x8A, 0xBF, 0x45, 0xCA, 0x05, 0x50, 0xBA, \
@@ -477,6 +503,80 @@ uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t custom_value)
 
 
     return err_code;
+}
+
+// TWI:
+
+/**
+ * @brief Function for setting forced mode on bme680 environment sensor.
+ */
+void bme680_set_mode(void)
+{
+    ret_code_t err_code;
+
+
+    /* Writing to LM75B_REG_CONF "0" set temperature sensor in NORMAL mode. */
+    uint8_t reg[2] = {BME680_REG_CTRL, BME680_FORCED_MODE};
+    err_code = nrfx_twi_tx(&m_twi, BME680_ADDR, reg, sizeof(reg), false);
+    APP_ERROR_CHECK(err_code);
+    while (m_xfer_done == false);
+
+    /* Writing to pointer byte. */
+    reg[0] = BME680_REG_TEMP_MSB;
+    m_xfer_done = false;
+    err_code = nrfx_twi_tx(&m_twi, BME680_ADDR, reg, 1, false);
+    APP_ERROR_CHECK(err_code);
+    while (m_xfer_done == false);
+}
+
+/**
+ * @brief Function for handling data from temperature sensor.
+ *
+ * @param[in] temp          Temperature in Celsius degrees read from sensor.
+ */
+__STATIC_INLINE void data_handler(uint8_t temp)
+{
+    NRF_LOG_INFO("Temperature: %d Celsius degrees.", temp);
+}
+
+/**
+ * @brief TWI events handler.
+ */
+void twi_handler(nrfx_twi_evt_t const * p_event, void * p_context)
+{
+    switch (p_event->type)
+    {
+        case NRFX_TWI_EVT_DONE:
+            if (p_event->xfer_desc.type == NRFX_TWI_XFER_RX)
+            {
+                data_handler(m_sample);
+            }
+            m_xfer_done = true;
+            break;
+        default:
+            break;
+    }
+}
+
+/**
+ * @brief TWI
+ */
+void twi_init (void)
+{
+    ret_code_t err_code;
+
+    const nrfx_twi_config_t twi_bme680_config = {
+       .scl                = THINGY_SCL_PIN,
+       .sda                = THINGY_SDA_PIN,
+       .frequency          = (nrf_twi_frequency_t)NRFX_TWI_DEFAULT_CONFIG_FREQUENCY,
+       .interrupt_priority = NRFX_TWI_DEFAULT_CONFIG_IRQ_PRIORITY,
+       .hold_bus_uninit    = NRFX_TWI_DEFAULT_CONFIG_HOLD_BUS_UNINIT
+    };
+
+    err_code = nrfx_twi_init(&m_twi, &twi_bme680_config, twi_handler, NULL);
+    APP_ERROR_CHECK(err_code);
+
+    nrfx_twi_enable(&m_twi);
 }
 
 // ********************************************************************
@@ -1186,6 +1286,8 @@ int main(void)
     advertising_init(); //
     conn_params_init();
     peer_manager_init();
+
+    twi_init(); // TWI
 
     // Start execution.
     NRF_LOG_INFO("Template example started.");
