@@ -22,14 +22,13 @@
 #include "nordic_common.h"
 #include "nrf.h"
 #include "app_error.h"
-#include "app_timer.h"
-#include "nrf_pwr_mgmt.h"
 
 // Other nRF includes
-#include "nrf_delay.h"
+#include "nrf_pwr_mgmt.h"
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
+#include "app_timer.h"
 
 // SoftDevice Handlers
 #include "nrf_sdh.h"
@@ -40,14 +39,23 @@
 // Application includes
 #include "slumsense.h"
 #include "bluetooth.h"
-#include "sensor.h"
+#include "sensors.h"
 
 
 APP_TIMER_DEF(m_notification_timer_id);
 uint16_t m_test_int = 0;
 
 /* Declarations */
+// ...
 
+
+/******************************************************************************
+ *  MISCELLANEOUS FUNCTIONS
+ ******************************************************************************
+
+/******************************************************************************
+ *  HANDLER FUNCTIONS
+ ******************************************************************************
 
 /**@brief Function for handling the measurement timer timeout.
  *
@@ -62,8 +70,6 @@ static void notification_timeout_handler(void * p_context)
     ret_code_t err_code;
 
     NRF_LOG_INFO("Reading data.");
-    nrf_delay_ms(20);
-    NRF_LOG_INFO("Done: %u", m_test_int);
 
     m_test_int++;
 
@@ -125,6 +131,23 @@ static void notification_timeout_handler(void * p_context)
 }
 
 
+/**@brief Function for handling the idle state (main loop).
+ *
+ * @details If there is no pending log operation, then sleep until next the next event occurs.
+ */
+static void idle_state_handle(void)
+{
+    if (NRF_LOG_PROCESS() == false)
+    {
+        nrf_pwr_mgmt_run();
+    }
+}
+
+
+/******************************************************************************
+ *  INIT FUNCTIONS
+ ******************************************************************************
+
 /**@brief Function for initializing the nrf log module.
  */
 static void log_init(void)
@@ -133,6 +156,15 @@ static void log_init(void)
     APP_ERROR_CHECK(err_code);
 
     NRF_LOG_DEFAULT_BACKENDS_INIT();
+}
+
+
+/**@brief Function for initializing the SoftDevice.
+ */
+static void sdh_init(void)
+{
+    ret_code_t err_code = nrf_sdh_enable_request();
+    APP_ERROR_CHECK(err_code);
 }
 
 
@@ -172,31 +204,16 @@ static void application_timers_start(void)
 }
 
 
-/**@brief Function for handling the idle state (main loop).
- *
- * @details If there is no pending log operation, then sleep until next the next event occurs.
- */
-static void idle_state_handle(void)
-{
-    if (NRF_LOG_PROCESS() == false)
-    {
-        nrf_pwr_mgmt_run();
-    }
-}
-
-
 /**@brief Function for application main entry.
  */
 int main(void)
 {
     // Initialize.
     log_init();
-
-    ret_code_t err_code = nrf_sdh_enable_request();
-    APP_ERROR_CHECK(err_code);
-
+    sdh_init();
     timers_init();
     power_management_init();
+    sensors_init();
 
     NRF_LOG_INFO("Here we go!");
 
@@ -209,3 +226,7 @@ int main(void)
         idle_state_handle();
     }
 }
+
+/**
+ * @}
+ */
