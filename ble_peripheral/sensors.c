@@ -13,17 +13,28 @@
  *
  * This file is something...
  */
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
+
 #include "nordic_common.h"
 #include "nrf.h"
+#include "app_error.h"
+#include "nrf_sdh.h"
+#include "nrf_sdh_soc.h"
+
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
+#include "nrfx_twi.h"
+#include "nrf_delay.h"
 
 #include "slumsense.h"
 #include "sensors.h"
-#include "nrfx_twi.h"
-#include "nrf_delay.h"
-#include "app_error.h"
+#include "bme680_defs.h"
 #include "bme680.h"
 
-#define TWI_INSTANCE_ID                                                                     // TWI instance ID.
+#define TWI_INSTANCE_ID 0                                                                   // TWI instance ID.
 
 /* Declarations */
 void twi_init(void);
@@ -32,33 +43,36 @@ int8_t user_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint16
 int8_t user_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint16_t len);
 
 /* Initializations */
-//static volatile bool m_xfer_done = false;                                                   // Indicates if operation on TWI has ended.
+static volatile bool m_xfer_done = false;                                                   // Indicates if operation on TWI has ended.
 static const nrfx_twi_t m_twi = NRFX_TWI_INSTANCE(TWI_INSTANCE_ID);                         // TWI instance.
-struct bme680_dev env_sensor;                                                               // Configurations for bme680.
-//static uint8_t m_sample;                                                                    // Buffer for samples read from temperature sensor.
+struct bme680_dev m_env_sensor;                                                             // Configurations for bme680.
+static uint8_t m_sample;                                                                    // Buffer for samples read from temperature sensor.
 
 
 void sensors_init(void)
 {
-    
-    /* Init BME680 */
+    // init TWI (maybe should control from main?)
+    twi_init();
 
-    env_sensor.dev_id   = BME680_I2C_ADDR_PRIMARY;
-    env_sensor.intf     = BME680_I2C_INTF;
-    env_sensor.read     = user_i2c_read;
-    env_sensor.write    = user_i2c_write;
-    env_sensor.delay_ms = user_delay_ms;
+    /* Init BME680 */
+    m_env_sensor.dev_id   = BME680_I2C_ADDR_PRIMARY;
+    m_env_sensor.intf     = BME680_I2C_INTF;
+    m_env_sensor.read     = user_i2c_read;
+    m_env_sensor.write    = user_i2c_write;
+    m_env_sensor.delay_ms = user_delay_ms;
     /* amb_temp can be set to 25 prior to configuring the gas sensor 
      * or by performing a few temperature readings without operating the gas sensor.
      */
-    env_sensor.amb_temp = 25;
+    m_env_sensor.amb_temp = 25;
 
     int8_t rslt = BME680_OK;
-    rslt = bme680_init(&env_sensor);
+    rslt = bme680_init(&m_env_sensor);
     ASSERT(BME680_OK == NRF_SUCCESS);
     APP_ERROR_CHECK(rslt); // assumes that BME680_OK == NRF_SUCCESS
 
-    twi_init();
+    // m_env_sensor.read(BME680_I2C_ADDR_PRIMARY, 0xD0, &m_sample, sizeof(m_sample));
+    // NRF_LOG_INFO("Initialized BME680, chip ID: 0x%x", m_sample);
+    NRF_LOG_INFO("Initialized BME680.");
 }
 
 
@@ -67,46 +81,160 @@ void sensors_configure(void)
     // TODO:    This is BME-specific, hw should we do this?
     //          Pass struct containing the settings we want?
     
+    int8_t rslt = BME680_OK;
     uint8_t set_required_settings;
 
     /* Set the temperature, pressure and humidity settings */
-    gas_sensor.tph_sett.os_hum  = BME680_OS_2X;
-    gas_sensor.tph_sett.os_pres = BME680_OS_4X;
-    gas_sensor.tph_sett.os_temp = BME680_OS_8X;
-    gas_sensor.tph_sett.filter  = BME680_FILTER_SIZE_3;
+    m_env_sensor.tph_sett.os_hum  = BME680_OS_2X;
+    m_env_sensor.tph_sett.os_pres = BME680_OS_4X;
+    m_env_sensor.tph_sett.os_temp = BME680_OS_8X;
+    m_env_sensor.tph_sett.filter  = BME680_FILTER_SIZE_3;
 
     /* Set the remaining gas sensor settings and link the heating profile */
-    gas_sensor.gas_sett.run_gas = BME680_ENABLE_GAS_MEAS;
+    m_env_sensor.gas_sett.run_gas = BME680_ENABLE_GAS_MEAS;
     /* Create a ramp heat waveform in 3 steps */
-    gas_sensor.gas_sett.heatr_temp = 320; /* degree Celsius */
-    gas_sensor.gas_sett.heatr_dur = 150; /* milliseconds */
+    m_env_sensor.gas_sett.heatr_temp = 320; /* degree Celsius */
+    m_env_sensor.gas_sett.heatr_dur = 150; /* milliseconds */
 
     /* Select the power mode */
     /* Must be set before writing the sensor configuration */
-    gas_sensor.power_mode = BME680_FORCED_MODE; 
+    m_env_sensor.power_mode = BME680_FORCED_MODE;
 
     /* Set the required sensor settings needed */
-    set_required_settings = BME680_OST_SEL |
-                            BME680_OSP_SEL |
-                            BME680_OSH_SEL |
-                            BME680_FILTER_SEL |
-                            BME680_GAS_SENSOR_SEL;
+    set_required_settings = BME680_OST_SEL       | // temp oversampling
+                            BME680_OSP_SEL       | // pres oversampling
+                            BME680_OSH_SEL       | // humi oversampling
+                            BME680_FILTER_SEL    | // filter
+                            BME680_GAS_SENSOR_SEL; // all gas sensor related
 
     /* Set the desired sensor configuration */
-    rslt = bme680_set_sensor_settings(set_required_settings, &env_sensor);
+    rslt = bme680_set_sensor_settings(set_required_settings, &m_env_sensor);
     ASSERT(BME680_OK == NRF_SUCCESS);
     APP_ERROR_CHECK(rslt); // assumes that BME680_OK == NRF_SUCCESS
 
     /* Set the power mode */
-    rslt = bme680_set_sensor_mode(&gas_sensor);
+    rslt = bme680_set_sensor_mode(&m_env_sensor);
     APP_ERROR_CHECK(rslt); // assumes that BME680_OK == NRF_SUCCESS
+}
+
+
+void sensors_read(uint8_t * data_reg)
+{
+    uint8_t config[1]    = {140}; // 0b1000_1100
+    uint8_t reg1[1]      = {BME680_CONF_T_P_MODE_ADDR};
+    uint8_t reg2[1]      = {BME680_CONF_OS_H_ADDR};
+    //uint8_t regs[1]     = {0x73};
+
+    bme680_set_regs(reg1, config, 1, &m_env_sensor);
+    bme680_set_regs(reg2, config, 1, &m_env_sensor);
+
+/*
+    // read from 0x71 to 0x75 (CTRL_GAS_1 to CONFIG)
+    uint8_t data[4];
+    m_env_sensor.read(0x76, 0x71, data, 4);
+*/
+
+//#if 0 /* REPEATING MEASUREMENTS */
+    int8_t rslt = BME680_OK;
+
+    /* Get the total measurement duration so as to sleep or wait till the
+     * measurement is complete */
+    uint16_t meas_period;
+    bme680_get_profile_dur(&meas_period, &m_env_sensor);
+
+    struct bme680_field_data data;
+
+    while(1)
+    {
+        user_delay_ms(meas_period); /* Delay till the measurement is ready */
+
+        rslt = bme680_get_sensor_data(&data, &m_env_sensor);
+
+        /*
+        NRF_LOG_INFO("T: %.2f degC, P: %.2f hPa, H %.2f %%rH ", data.temperature / 100.0f,
+            data.pressure / 100.0f, data.humidity / 1000.0f );
+        */
+        NRF_LOG_INFO("T: %d degC, P: %d hPa, H: %d %%rH ", data.temperature,
+            data.pressure / 100.0f, data.humidity );
+
+        /* Avoid using measurements from an unstable heating setup */
+        if(data.status & BME680_GASM_VALID_MSK)
+            NRF_LOG_INFO(", G: %d ohms", data.gas_resistance);
+
+        NRF_LOG_INFO("\r\n");
+
+        /* Trigger the next measurement if you would like to read data out continuously */
+        if (m_env_sensor.power_mode == BME680_FORCED_MODE) {
+            rslt = bme680_set_sensor_mode(&m_env_sensor);
+        }
+    }
+//#endif /* REPEATING MEASUREMENTS */
+
+#if 0 /* ONE-SHOT */
+    // ret_code_t err_code = NRF_SUCCESS;
+    int8_t rslt = BME680_OK;
+
+    /* Get the total measurement duration so as to sleep or wait till the
+     * measurement is complete */
+    uint16_t meas_period;
+    bme680_get_profile_dur(&meas_period, &m_env_sensor);
+
+    struct bme680_field_data data;
+
+    user_delay_ms(meas_period); /* Delay till the measurement is ready */
+
+    rslt = bme680_get_sensor_data(&data, &m_env_sensor);
+
+    NRF_LOG_INFO("T: %.2f degC, P: %.2f hPa, H %.2f %%rH ", data.temperature / 100.0f,
+        data.pressure / 100.0f, data.humidity / 1000.0f );
+
+    /* Avoid using measurements from an unstable heating setup */
+    if(data.status & BME680_GASM_VALID_MSK)
+        NRF_LOG_INFO(", G: %d ohms", data.gas_resistance);
+
+    NRF_LOG_INFO("\r\n");
+
+    /* Trigger the next measurement if you would like to read data out continuously */
+    if (m_env_sensor.power_mode == BME680_FORCED_MODE) {
+        rslt = bme680_set_sensor_mode(&m_env_sensor);
+    }
+
+    *data_reg = data.temperature;
+#endif /* ONE-SHOT */
+
+#if 0
+    // blocking mode
+    m_env_sensor.read(BME680_I2C_ADDR_PRIMARY, 0xD0, &m_sample, sizeof(m_sample));
+
+    NRF_LOG_INFO("kekkk: 0x%x", m_sample);
+
+    *data_reg = m_sample;
+#endif
+
+#if 0
+    // send a message and immediately read
+    nrfx_twi_xfer_desc_t xfer = NRFX_TWI_XFER_DESC_TXRX (
+      0x76,        // slave address
+      &id_reg,            // tx buffer
+      sizeof(id_reg),     // tx buffer length
+      &m_sample,          // rx buffer
+      1                   //sizeof(m_twi), chip ID is 1 byte // rx buffer length
+    );
+
+    //err_code = nrfx_twi_tx(&m_twi, BME680_ADDR, &id_reg, sizeof(id_reg), true);
+    //APP_ERROR_CHECK(err_code);
+
+    NRF_LOG_INFO("Reading sensor...");
+
+    err_code = nrfx_twi_xfer(&m_twi, &xfer, NULL);
+    APP_ERROR_CHECK(err_code);
+#endif
 }
 
 
 /**
  * @brief TWI events handler.
  */
-/*
 void twi_handler(nrfx_twi_evt_t const * p_event, void * p_context)
 {
     switch (p_event->type)
@@ -114,7 +242,7 @@ void twi_handler(nrfx_twi_evt_t const * p_event, void * p_context)
         case NRFX_TWI_EVT_DONE:
             if (p_event->xfer_desc.type == NRFX_TWI_XFER_RX)
             {
-                sensor_data_handler(m_sample);
+                // NRF_LOG_INFO("Dataa tuli: %x", m_sample);
             }
             m_xfer_done = true;
             break;
@@ -122,7 +250,6 @@ void twi_handler(nrfx_twi_evt_t const * p_event, void * p_context)
             break;
     }
 }
-*/
 
 
 /**
@@ -136,12 +263,12 @@ void twi_init(void)
        .scl                = THINGY91_SCL_PIN,
        .sda                = THINGY91_SDA_PIN,
        .frequency          = (nrf_twi_frequency_t)NRFX_TWI_DEFAULT_CONFIG_FREQUENCY,
-       .interrupt_priority = NRFX_TWI_DEFAULT_CONFIG_IRQ_PRIORITY,
+       .interrupt_priority = APP_IRQ_PRIORITY_HIGH, // NRFX_TWI_DEFAULT_CONFIG_IRQ_PRIORITY,
        .hold_bus_uninit    = NRFX_TWI_DEFAULT_CONFIG_HOLD_BUS_UNINIT
     };
 
     // NULL as the handler -> use blocking (synchronous) mode
-    err_code = nrfx_twi_init(&m_twi, &twi_bme680_config, NULL, NULL);
+    err_code = nrfx_twi_init(&m_twi, &twi_bme680_config, twi_handler, NULL);
     APP_ERROR_CHECK(err_code);
 
     nrfx_twi_enable(&m_twi);
@@ -173,6 +300,7 @@ void user_delay_ms(uint32_t period)
  * @param[out] reg_data     Pointer to the data to read to.
  * @param[in]  len          Length of the data to be read.
  */
+//char buf[256];
 int8_t user_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint16_t len)
 {
     /*
@@ -196,20 +324,35 @@ int8_t user_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint16
      */
     ret_code_t err_code = NRF_SUCCESS;
 
-    // TXRX: write tx1 and tx2 without STOP in between
-    // FIXME: TXRX does NOT have stop in between!
-    nrfx_twi_xfer_desc_t xfer = NRFX_TWI_XFER_DESC_TXRX	(
-        BME680_I2C_ADDR_PRIMARY,  // slave address
-        &reg_addr,                // tx buffer
-        sizeof(reg_addr),         // tx buffer length
-        reg_data,                 // rx buffer
-        len                       // rx buffer length
-    );
+#if 0
+    uint8_t msg[] = {reg_addr, *reg_data}; // construct the message
 
-    //err_code = nrfx_twi_tx(&m_twi, BME680_ADDR, &id_reg, sizeof(id_reg), true);
-    //APP_ERROR_CHECK(err_code);
-    err_code = nrfx_twi_xfer(&m_twi, &xfer, NULL);
+    // set slave register address & receive from the register
+    m_xfer_done = false;
+    nrfx_twi_rx(&m_twi, dev_id, msg, len + 1);
     APP_ERROR_CHECK(err_code);
+    while (m_xfer_done == false); // wait for ACK
+#endif
+
+    // set slave register address
+    m_xfer_done = false;
+    nrfx_twi_tx(&m_twi, dev_id, &reg_addr, sizeof(reg_addr), false);
+    APP_ERROR_CHECK(err_code);
+    while (m_xfer_done == false); // wait for ACK
+
+    // receive from the register
+    m_xfer_done = false;
+    nrfx_twi_rx(&m_twi, dev_id, reg_data, len);
+    APP_ERROR_CHECK(err_code);
+    while (m_xfer_done == false); // wait for ACK
+
+#if SENSORS_I2C_DEBUG
+    NRF_LOG_INFO("Read from 0x%x, %u bytes:", reg_addr, len);
+    for(int i = 0; i < len; i++)
+    {
+        NRF_LOG_INFO("\t0x%x", reg_data[i]);
+    }
+#endif // SENSORS_I2C_DEBUG
 
     return 0; // checked for errors already, return 0 for success
 }
@@ -245,19 +388,49 @@ int8_t user_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint1
      */
     ret_code_t err_code = NRF_SUCCESS;
 
+    /*
     // TXTX: write tx1 and tx2 without STOP in between
     nrfx_twi_xfer_desc_t xfer = NRFX_TWI_XFER_DESC_TXTX(
-        BME680_I2C_ADDR_PRIMARY,  // slave address
+        dev_id,                   // slave address
         &reg_addr,                // tx1 buffer
         sizeof(reg_addr),         // tx1 buffer length
         reg_data,                 // tx2 buffer
-        len                      // tx2 buffer length
-    )
+        len                       // tx2 buffer length
+    );
 
-    //err_code = nrfx_twi_tx(&m_twi, BME680_ADDR, &id_reg, sizeof(id_reg), true);
-    //APP_ERROR_CHECK(err_code);
-    err_code = nrfx_twi_xfer(&m_twi, &xfer, NULL);
+    err_code = nrfx_twi_xfer(&m_twi, &xfer, NULL); // Do we need: NRFX_TWI_FLAG_NO_XFER_EVT_HANDLER
     APP_ERROR_CHECK(err_code);
+    */
+
+#if SENSORS_I2C_DEBUG
+    NRF_LOG_INFO("Write to 0x%x, %u bytes:", reg_addr, len);
+    for(int i = 0; i < len; i++)
+    {
+        NRF_LOG_INFO("\t0x%x", reg_data[i]);
+    }
+#endif // SENSORS_I2C_DEBUG
+
+    uint8_t msg[] = {reg_addr, *reg_data}; // construct the message
+
+    // set the register address & write to the register
+    m_xfer_done = false;
+    nrfx_twi_tx(&m_twi, dev_id, msg, len + 1, false);
+    APP_ERROR_CHECK(err_code);
+    while (m_xfer_done == false); // wait for ACK
+
+#if 0
+    // set slave register address (without STOP)
+    m_xfer_done = false;
+    nrfx_twi_tx(&m_twi, dev_id, &reg_addr, sizeof(reg_addr), true);
+    APP_ERROR_CHECK(err_code);
+    while (m_xfer_done == false); // wait for ACK
+
+    // write to the register
+    m_xfer_done = false;
+    nrfx_twi_tx(&m_twi, dev_id, reg_data, sizeof(*reg_data), false);
+    APP_ERROR_CHECK(err_code);
+    while (m_xfer_done == false); // wait for ACK
+#endif
 
     return 0; // checked for errors already, return 0 for success
 }

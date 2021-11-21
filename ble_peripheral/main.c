@@ -29,6 +29,7 @@
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
 #include "app_timer.h"
+#include "nrf_delay.h"
 
 // SoftDevice Handlers
 #include "nrf_sdh.h"
@@ -43,7 +44,7 @@
 
 
 APP_TIMER_DEF(m_notification_timer_id);
-uint16_t m_test_int = 0;
+uint8_t m_sensor_data = 0; // should be of type bme680_field_data
 
 /* Declarations */
 // ...
@@ -71,7 +72,9 @@ static void notification_timeout_handler(void * p_context)
 
     NRF_LOG_INFO("Reading data.");
 
-    m_test_int++;
+    sensors_read(&m_sensor_data);
+
+    NRF_LOG_INFO("Data: 0x%x", m_sensor_data);
 
     // TODO: separate timer for sensor read, timeout e.g. 30 seconds or 2 minutes
     /*
@@ -213,12 +216,16 @@ int main(void)
     sdh_init();
     timers_init();
     power_management_init();
+
     sensors_init();
+    sensors_configure();
 
     NRF_LOG_INFO("Here we go!");
+    nrf_delay_ms(3000);
 
     // Just for fun, start the timer.
-    application_timers_start();
+    // application_timers_start();
+    sensors_read(&m_sensor_data);
 
     // Enter main loop.
     for (;;)
