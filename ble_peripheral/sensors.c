@@ -91,10 +91,10 @@ void sensors_configure(void)
     m_env_sensor.tph_sett.filter  = BME680_FILTER_SIZE_3;
 
     /* Set the remaining gas sensor settings and link the heating profile */
-    m_env_sensor.gas_sett.run_gas = BME680_ENABLE_GAS_MEAS;
+    m_env_sensor.gas_sett.run_gas = BME680_DISABLE_GAS_MEAS; // BME680_ENABLE_GAS_MEAS;
     /* Create a ramp heat waveform in 3 steps */
-    m_env_sensor.gas_sett.heatr_temp = 320; /* degree Celsius */
-    m_env_sensor.gas_sett.heatr_dur = 150; /* milliseconds */
+    // m_env_sensor.gas_sett.heatr_temp = 320; /* degree Celsius */
+    // m_env_sensor.gas_sett.heatr_dur = 150; /* milliseconds */
 
     /* Select the power mode */
     /* Must be set before writing the sensor configuration */
@@ -112,29 +112,19 @@ void sensors_configure(void)
     ASSERT(BME680_OK == NRF_SUCCESS);
     APP_ERROR_CHECK(rslt); // assumes that BME680_OK == NRF_SUCCESS
 
-    /* Set the power mode */
-    rslt = bme680_set_sensor_mode(&m_env_sensor);
-    APP_ERROR_CHECK(rslt); // assumes that BME680_OK == NRF_SUCCESS
-}
-
-
-void sensors_read(uint8_t * data_reg)
-{
-    uint8_t config[1]    = {140}; // 0b1000_1100
+    /* Configure oversampling by hand, for some reason */
+    uint8_t config[1]    = {0x8C};
     uint8_t reg1[1]      = {BME680_CONF_T_P_MODE_ADDR};
     uint8_t reg2[1]      = {BME680_CONF_OS_H_ADDR};
     //uint8_t regs[1]     = {0x73};
 
     bme680_set_regs(reg1, config, 1, &m_env_sensor);
     bme680_set_regs(reg2, config, 1, &m_env_sensor);
+}
 
-/*
-    // read from 0x71 to 0x75 (CTRL_GAS_1 to CONFIG)
-    uint8_t data[4];
-    m_env_sensor.read(0x76, 0x71, data, 4);
-*/
 
-//#if 0 /* REPEATING MEASUREMENTS */
+nrfx_err_t sensors_read(env_data_t *env_data)
+{
     int8_t rslt = BME680_OK;
 
     /* Get the total measurement duration so as to sleep or wait till the
@@ -144,98 +134,50 @@ void sensors_read(uint8_t * data_reg)
 
     struct bme680_field_data data;
 
-    while(1)
-    {
-        user_delay_ms(meas_period); /* Delay till the measurement is ready */
-
-        rslt = bme680_get_sensor_data(&data, &m_env_sensor);
-
-        /*
-        NRF_LOG_INFO("T: %.2f degC, P: %.2f hPa, H %.2f %%rH ", data.temperature / 100.0f,
-            data.pressure / 100.0f, data.humidity / 1000.0f );
-        */
-        NRF_LOG_INFO("T: %d degC, P: %d hPa, H: %d %%rH ", data.temperature,
-            data.pressure / 100.0f, data.humidity );
-
-        /* Avoid using measurements from an unstable heating setup */
-        if(data.status & BME680_GASM_VALID_MSK)
-            NRF_LOG_INFO(", G: %d ohms", data.gas_resistance);
-
-        NRF_LOG_INFO("\r\n");
-
-        /* Trigger the next measurement if you would like to read data out continuously */
-        if (m_env_sensor.power_mode == BME680_FORCED_MODE) {
-            rslt = bme680_set_sensor_mode(&m_env_sensor);
-        }
+    /* Trigger the next measurement */
+    if (m_env_sensor.power_mode == BME680_FORCED_MODE) {
+        rslt = bme680_set_sensor_mode(&m_env_sensor);
     }
-//#endif /* REPEATING MEASUREMENTS */
-
-#if 0 /* ONE-SHOT */
-    // ret_code_t err_code = NRF_SUCCESS;
-    int8_t rslt = BME680_OK;
-
-    /* Get the total measurement duration so as to sleep or wait till the
-     * measurement is complete */
-    uint16_t meas_period;
-    bme680_get_profile_dur(&meas_period, &m_env_sensor);
-
-    struct bme680_field_data data;
 
     user_delay_ms(meas_period); /* Delay till the measurement is ready */
 
     rslt = bme680_get_sensor_data(&data, &m_env_sensor);
 
-    NRF_LOG_INFO("T: %.2f degC, P: %.2f hPa, H %.2f %%rH ", data.temperature / 100.0f,
-        data.pressure / 100.0f, data.humidity / 1000.0f );
+#if SENSORS_LOG_DATA
+    // no decimals
+    NRF_LOG_INFO("T: %d degC, P: %d hPa, H: %d %%rH ", data.temperature,
+        data.pressure / 100.0f, data.humidity );
+    /*
+    NRF_LOG_INFO("T: %d degC, P: %d hPa, H: %d %%rH ", data.temperature * 10,
+        data.pressure / 100.0f, data.humidity * 10 );
+    */
 
     /* Avoid using measurements from an unstable heating setup */
     if(data.status & BME680_GASM_VALID_MSK)
         NRF_LOG_INFO(", G: %d ohms", data.gas_resistance);
-
     NRF_LOG_INFO("\r\n");
+#endif // SENSORS_LOG_DATA
 
-    /* Trigger the next measurement if you would like to read data out continuously */
-    if (m_env_sensor.power_mode == BME680_FORCED_MODE) {
-        rslt = bme680_set_sensor_mode(&m_env_sensor);
+    // TODO: some data validation (sanity check) and return false if nonsense
+
+    if (rslt != BME680_OK)
+    {
+        return NRF_ERROR_INVALID_DATA;
     }
 
-    *data_reg = data.temperature;
-#endif /* ONE-SHOT */
+    // set sensor data for return
+    env_data->temperature   = data.temperature * 10;
+    env_data->pressure      = data.pressure / 10.0f;
+    env_data->humidity      = data.humidity * 10;
 
-#if 0
-    // blocking mode
-    m_env_sensor.read(BME680_I2C_ADDR_PRIMARY, 0xD0, &m_sample, sizeof(m_sample));
-
-    NRF_LOG_INFO("kekkk: 0x%x", m_sample);
-
-    *data_reg = m_sample;
-#endif
-
-#if 0
-    // send a message and immediately read
-    nrfx_twi_xfer_desc_t xfer = NRFX_TWI_XFER_DESC_TXRX (
-      0x76,        // slave address
-      &id_reg,            // tx buffer
-      sizeof(id_reg),     // tx buffer length
-      &m_sample,          // rx buffer
-      1                   //sizeof(m_twi), chip ID is 1 byte // rx buffer length
-    );
-
-    //err_code = nrfx_twi_tx(&m_twi, BME680_ADDR, &id_reg, sizeof(id_reg), true);
-    //APP_ERROR_CHECK(err_code);
-
-    NRF_LOG_INFO("Reading sensor...");
-
-    err_code = nrfx_twi_xfer(&m_twi, &xfer, NULL);
-    APP_ERROR_CHECK(err_code);
-#endif
+    return NRF_SUCCESS;
 }
 
 
 /**
  * @brief TWI events handler.
  */
-void twi_handler(nrfx_twi_evt_t const * p_event, void * p_context)
+void twi_handler(nrfx_twi_evt_t const *p_event, void *p_context)
 {
     switch (p_event->type)
     {
@@ -300,7 +242,6 @@ void user_delay_ms(uint32_t period)
  * @param[out] reg_data     Pointer to the data to read to.
  * @param[in]  len          Length of the data to be read.
  */
-//char buf[256];
 int8_t user_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint16_t len)
 {
     /*
@@ -346,13 +287,13 @@ int8_t user_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint16
     APP_ERROR_CHECK(err_code);
     while (m_xfer_done == false); // wait for ACK
 
-#if SENSORS_I2C_DEBUG
+#if SENSORS_LOG_TWI_TRAFFIC
     NRF_LOG_INFO("Read from 0x%x, %u bytes:", reg_addr, len);
     for(int i = 0; i < len; i++)
     {
         NRF_LOG_INFO("\t0x%x", reg_data[i]);
     }
-#endif // SENSORS_I2C_DEBUG
+#endif // SENSORS_LOG_TWI_TRAFFIC
 
     return 0; // checked for errors already, return 0 for success
 }
@@ -402,13 +343,13 @@ int8_t user_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint1
     APP_ERROR_CHECK(err_code);
     */
 
-#if SENSORS_I2C_DEBUG
+#if SENSORS_LOG_TWI_TRAFFIC
     NRF_LOG_INFO("Write to 0x%x, %u bytes:", reg_addr, len);
     for(int i = 0; i < len; i++)
     {
         NRF_LOG_INFO("\t0x%x", reg_data[i]);
     }
-#endif // SENSORS_I2C_DEBUG
+#endif // SENSORS_LOG_TWI_TRAFFIC
 
     uint8_t msg[] = {reg_addr, *reg_data}; // construct the message
 
@@ -417,20 +358,6 @@ int8_t user_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint1
     nrfx_twi_tx(&m_twi, dev_id, msg, len + 1, false);
     APP_ERROR_CHECK(err_code);
     while (m_xfer_done == false); // wait for ACK
-
-#if 0
-    // set slave register address (without STOP)
-    m_xfer_done = false;
-    nrfx_twi_tx(&m_twi, dev_id, &reg_addr, sizeof(reg_addr), true);
-    APP_ERROR_CHECK(err_code);
-    while (m_xfer_done == false); // wait for ACK
-
-    // write to the register
-    m_xfer_done = false;
-    nrfx_twi_tx(&m_twi, dev_id, reg_data, sizeof(*reg_data), false);
-    APP_ERROR_CHECK(err_code);
-    while (m_xfer_done == false); // wait for ACK
-#endif
 
     return 0; // checked for errors already, return 0 for success
 }

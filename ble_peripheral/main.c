@@ -44,7 +44,7 @@
 
 
 APP_TIMER_DEF(m_notification_timer_id);
-uint8_t m_sensor_data = 0; // should be of type bme680_field_data
+env_data_t m_env_data;
 
 /* Declarations */
 // ...
@@ -65,16 +65,18 @@ uint8_t m_sensor_data = 0; // should be of type bme680_field_data
  * @param[in] p_context  Pointer used for passing some arbitrary information (context) from the
  *                       app_start_timer() call to the timeout handler.
  */
-static void notification_timeout_handler(void * p_context)
+static void notification_timeout_handler(void *p_context)
 {
     UNUSED_PARAMETER(p_context);
     ret_code_t err_code;
 
     NRF_LOG_INFO("Reading data.");
 
-    sensors_read(&m_sensor_data);
+    sensors_read(&m_env_data);
 
-    NRF_LOG_INFO("Data: 0x%x", m_sensor_data);
+    NRF_LOG_INFO("Temperature: %d °C", m_env_data.temperature);
+    NRF_LOG_INFO("Pressure:    %d hPa", m_env_data.pressure);
+    NRF_LOG_INFO("Humidity:    %d %%", m_env_data.humidity);
 
     // TODO: separate timer for sensor read, timeout e.g. 30 seconds or 2 minutes
     /*
@@ -220,12 +222,11 @@ int main(void)
     sensors_init();
     sensors_configure();
 
-    NRF_LOG_INFO("Here we go!");
-    nrf_delay_ms(3000);
+    NRF_LOG_INFO("Configured. Starting...");
+    nrf_delay_ms(250);
 
     // Just for fun, start the timer.
-    // application_timers_start();
-    sensors_read(&m_sensor_data);
+    application_timers_start();
 
     // Enter main loop.
     for (;;)
