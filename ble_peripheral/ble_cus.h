@@ -86,43 +86,14 @@ struct ble_cus_s
     uint8_t                       uuid_type; 
 };
 
-/**@brief Function for initializing the Custom Service.
- *
- * @param[out]  p_cus       Custom Service structure. This structure will have to be supplied by
- *                          the application. It will be initialized by this function, and will later
- *                          be used to identify this particular service instance.
- * @param[in]   p_cus_init  Information needed to initialize the service.
- *
- * @return      NRF_SUCCESS on successful initialization of service, otherwise an error code.
- */
-uint32_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init);
 
-/**@brief Function for handling the Application's BLE Stack events.
- *
- * @details Handles all events from the BLE stack of interest to the Battery Service.
- *
- * @note 
- *
- * @param[in]   p_cus      Custom Service structure.
- * @param[in]   p_ble_evt  Event received from the BLE stack.
- */
-void ble_cus_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context);
-
-/**@brief Function for updating the custom value.
- *
- * @details The application calls this function when the cutom value should be updated. If
- *          notification has been enabled, the custom value characteristic is sent to the client.
- *
- * @note 
- *       
- * @param[in]   p_bas          Custom Service structure.
- * @param[in]   Custom value 
- *
- * @return      NRF_SUCCESS on success, otherwise an error code.
- */
-
-uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t custom_value);
+/* Public interfaces */
+uint32_t    ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init);
+void        ble_cus_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context);
+uint32_t    ble_cus_custom_value_update(ble_cus_t * p_cus, env_data_t *new_data);
 
 #endif // BLE_CUS_H__
 
-/** @} */
+/**
+ * @}
+ */

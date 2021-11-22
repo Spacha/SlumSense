@@ -17,12 +17,22 @@
 #include <string.h>
 
 #include "sdk_common.h"
-#include "ble_cus.h"
 #include "ble_srv_common.h"
 #include "nrf_gpio.h"
 #include "boards.h"
 #include "nrf_log.h"
 
+#include "slumsense.h"
+#include "ble_cus.h"
+
+
+/* Declarations */
+// ...
+
+
+/******************************************************************************
+ *  PRIVATE FUNCTIONS
+ *****************************************************************************/
 
 /**@brief Function for handling the Connect event.
  *
@@ -111,40 +121,6 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
 
 }
 
-void ble_cus_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context)
-{
-    ble_cus_t * p_cus = (ble_cus_t *) p_context;
-    
-    NRF_LOG_INFO("BLE event received. Event type = %d\r\n", p_ble_evt->header.evt_id); 
-    if (p_cus == NULL || p_ble_evt == NULL)
-    {
-        return;
-    }
-    
-    switch (p_ble_evt->header.evt_id)
-    {
-        case BLE_GAP_EVT_CONNECTED:
-            on_connect(p_cus, p_ble_evt);
-            break;
-
-        case BLE_GAP_EVT_DISCONNECTED:
-            on_disconnect(p_cus, p_ble_evt);
-            break;
-
-        case BLE_GATTS_EVT_WRITE:
-            on_write(p_cus, p_ble_evt);
-            break;
-/* Handling this event is not necessary
-        case BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST:
-            NRF_LOG_INFO("EXCHANGE_MTU_REQUEST event received.\r\n");
-            break;
-*/
-        default:
-            // No implementation needed.
-            break;
-    }
-}
-
 
 /**@brief Function for adding the Custom Value characteristic.
  *
@@ -213,6 +189,19 @@ static uint32_t custom_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t * 
 }
 
 
+/******************************************************************************
+ *  PUBLIC FUNCTIONS
+ *****************************************************************************/
+
+/**@brief Function for initializing the Custom Service.
+ *
+ * @param[out]  p_cus       Custom Service structure. This structure will have to be supplied by
+ *                          the application. It will be initialized by this function, and will later
+ *                          be used to identify this particular service instance.
+ * @param[in]   p_cus_init  Information needed to initialize the service.
+ *
+ * @return      NRF_SUCCESS on successful initialization of service, otherwise an error code.
+ */
 uint32_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
 {
     if (p_cus == NULL || p_cus_init == NULL)
@@ -247,7 +236,63 @@ uint32_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
 }
 
 
-uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t custom_value)
+/**@brief Function for handling the Application's BLE Stack events.
+ *
+ * @details Handles all events from the BLE stack of interest to the Battery Service.
+ *
+ * @note 
+ *
+ * @param[in]   p_cus      Custom Service structure.
+ * @param[in]   p_ble_evt  Event received from the BLE stack.
+ */
+void ble_cus_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context)
+{
+    ble_cus_t * p_cus = (ble_cus_t *) p_context;
+    
+    NRF_LOG_INFO("BLE event received. Event type = %d\r\n", p_ble_evt->header.evt_id); 
+    if (p_cus == NULL || p_ble_evt == NULL)
+    {
+        return;
+    }
+    
+    switch (p_ble_evt->header.evt_id)
+    {
+        case BLE_GAP_EVT_CONNECTED:
+            on_connect(p_cus, p_ble_evt);
+            break;
+
+        case BLE_GAP_EVT_DISCONNECTED:
+            on_disconnect(p_cus, p_ble_evt);
+            break;
+
+        case BLE_GATTS_EVT_WRITE:
+            on_write(p_cus, p_ble_evt);
+            break;
+/* Handling this event is not necessary
+        case BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST:
+            NRF_LOG_INFO("EXCHANGE_MTU_REQUEST event received.\r\n");
+            break;
+*/
+        default:
+            // No implementation needed.
+            break;
+    }
+}
+
+
+/**@brief Function for updating the custom value.
+ *
+ * @details The application calls this function when the cutom value should be updated. If
+ *          notification has been enabled, the custom value characteristic is sent to the client.
+ *
+ * @note 
+ *       
+ * @param[in]   p_bas          Custom Service structure.
+ * @param[in]   Custom value 
+ *
+ * @return      NRF_SUCCESS on success, otherwise an error code.
+ */
+uint32_t ble_cus_custom_value_update(ble_cus_t *p_cus, env_data_t *new_data)
 {
     NRF_LOG_INFO("In ble_cus_custom_value_update. \r\n"); 
     if (p_cus == NULL)
@@ -263,7 +308,7 @@ uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t custom_value)
 
     gatts_value.len     = sizeof(uint8_t);
     gatts_value.offset  = 0;
-    gatts_value.p_value = &custom_value;
+    gatts_value.p_value = &(new_data->temperature);
 
     // Update database.
     err_code = sd_ble_gatts_value_set(p_cus->conn_handle,
@@ -299,3 +344,8 @@ uint32_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t custom_value)
 
     return err_code;
 }
+
+
+/**
+ * @}
+ */

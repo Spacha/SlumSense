@@ -1043,7 +1043,7 @@ int main(void)
 #define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(30000)                  /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT    3                                       /**< Number of attempts before giving up the connection parameter negotiation. */
 
-#define NOTIFICATION_INTERVAL           APP_TIMER_TICKS(1000)                   /**< Interval of sending notifications when enabled. */
+#define NOTIFICATION_INTERVAL           APP_TIMER_TICKS(2000)                   /**< Interval of sending notifications when enabled. */
 
 #define SEC_PARAM_BOND                  1                                       /**< Perform bonding. */
 #define SEC_PARAM_MITM                  0                                       /**< Man In The Middle protection not required. */
@@ -1094,9 +1094,11 @@ static void application_timers_start(void)
        err_code = app_timer_start(m_x_timer_id, TIMER_X_INTERVAL, NULL);
        APP_ERROR_CHECK(err_code);
        */
+       /*
        ret_code_t err_code;
        err_code = app_timer_start(m_notification_timer_id, NOTIFICATION_INTERVAL, NULL);
        APP_ERROR_CHECK(err_code);
+       */
 }
 
 
@@ -1163,6 +1165,14 @@ static void notification_timeout_handler(void *p_context)
     NRF_LOG_INFO("Temperature: %d °C", m_env_data.temperature);
     NRF_LOG_INFO("Pressure:    %d hPa", m_env_data.pressure);
     NRF_LOG_INFO("Humidity:    %d %%", m_env_data.humidity);
+
+    err_code = ble_cus_custom_value_update(&m_cus, &m_env_data);
+    if (err_code == NRF_ERROR_INVALID_STATE)
+    {
+        NRF_LOG_INFO("Client has disconnected. Couldn't send data.");
+        return;
+    }
+    APP_ERROR_CHECK(err_code);
 }
 
 
@@ -1375,7 +1385,9 @@ static void on_cus_evt(ble_cus_t     * p_cus_service,
         case BLE_CUS_EVT_CONNECTED:
             break;
 
-        case BLE_CUS_EVT_DISCONNECTED:
+        case BLE_CUS_EVT_DISCONNECTED: // also stop polling if the client disconnects
+            err_code = app_timer_stop(m_notification_timer_id);
+            APP_ERROR_CHECK(err_code);
             break;
 
         default:
@@ -1593,18 +1605,15 @@ int main(void)
     services_init();
     advertising_init();
     
-
     NRF_LOG_INFO("Initializing sensors...");
     sensors_init();
     sensors_configure();
 
     NRF_LOG_INFO("Initialized. Starting...");
-    nrf_delay_ms(100);
-
     application_timers_start();
 
     // start BLE advertising
-    // ...
+    advertising_start();
 
     // enter main loop
     for (;;)

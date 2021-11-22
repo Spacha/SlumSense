@@ -186,9 +186,14 @@ ret_code_t sensors_read(env_data_t *env_data)
     }
 
     // set sensor data for return
+    env_data->temperature   = data.temperature;
+    env_data->pressure      = data.pressure / 100.0f;
+    env_data->humidity      = data.humidity;
+    /*
     env_data->temperature   = data.temperature * 10;
     env_data->pressure      = data.pressure / 10.0f;
     env_data->humidity      = data.humidity * 10;
+    */
 
     return NRF_SUCCESS;
 }
