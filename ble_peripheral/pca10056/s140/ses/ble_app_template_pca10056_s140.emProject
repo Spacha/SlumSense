@@ -99,12 +99,12 @@
     </folder>
     <folder Name="Application">
       <file file_name="../config/sdk_config.h" />
-      <file file_name="../../../bluetooth.c" />
       <file file_name="../../../main.c" />
-      <file file_name="../../../bluetooth.h" />
       <file file_name="../../../slumsense.h" />
       <file file_name="../../../sensors.h" />
       <file file_name="../../../sensors.c" />
+      <file file_name="../../../ble_cus.h" />
+      <file file_name="../../../ble_cus.c" />
     </folder>
     <folder Name="nRF_Segger_RTT">
       <file file_name="../../../../../../external/segger_rtt/SEGGER_RTT.c" />

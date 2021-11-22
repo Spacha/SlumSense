@@ -14,7 +14,7 @@
  * This file is something...
  */
 
-#include "nrf_error.h"
+#include "app_error.h"
 
 #ifndef SLUM_SLUMSENSE_H__
 #define SLUM_SLUMSENSE_H__

@@ -34,21 +34,30 @@
 #include "bme680_defs.h"
 #include "bme680.h"
 
-#define TWI_INSTANCE_ID 0                                                                   // TWI instance ID.
+
+/* Definitions */
+#define TWI_INSTANCE_ID 0                                                       /**< TWI instance ID. */
 
 /* Declarations */
-void twi_init(void);
+static void twi_init(void);
+static void twi_handler(nrfx_twi_evt_t const *p_event, void *p_context);
 void user_delay_ms(uint32_t period);
 int8_t user_i2c_read(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint16_t len);
 int8_t user_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint16_t len);
 
 /* Initializations */
-static volatile bool m_xfer_done = false;                                                   // Indicates if operation on TWI has ended.
-static const nrfx_twi_t m_twi = NRFX_TWI_INSTANCE(TWI_INSTANCE_ID);                         // TWI instance.
-struct bme680_dev m_env_sensor;                                                             // Configurations for bme680.
-static uint8_t m_sample;                                                                    // Buffer for samples read from temperature sensor.
+static volatile bool m_xfer_done = false;                                       /**< Indicates if operation on TWI has ended. */
+static const nrfx_twi_t m_twi = NRFX_TWI_INSTANCE(TWI_INSTANCE_ID);             /**< TWI instance. */
+struct bme680_dev m_env_sensor;                                                 /**< Configurations for bme680. */
+static uint8_t m_sample;                                                        /**< Buffer for samples read from temperature sensor. */
 
 
+/******************************************************************************
+ *  PUBLIC FUNCTIONS
+ *****************************************************************************/
+
+/**@brief Function for sensor initializations.
+ */
 void sensors_init(void)
 {
     // init TWI (maybe should control from main?)
@@ -76,6 +85,8 @@ void sensors_init(void)
 }
 
 
+/**@brief Function for sensor configurations.
+ */
 void sensors_configure(void)
 {
     // TODO:    This is BME-specific, hw should we do this?
@@ -123,7 +134,16 @@ void sensors_configure(void)
 }
 
 
-nrfx_err_t sensors_read(env_data_t *env_data)
+/**@brief Function for reading the environmental sensor data.
+ *
+ * @details Triggers a measurement in bmr680 and reads the data.
+ *
+ * @param[out] env_data                 Pointer to the location where the sensor data is to be written.
+ *
+ * @retval NRF_SUCCESS                  The procedure is successful.
+ * @retval NRF_ERROR_INVALID_DATA       The sensor couldn't be read or the data was invalid.
+ */
+ret_code_t sensors_read(env_data_t *env_data)
 {
     int8_t rslt = BME680_OK;
 
@@ -174,30 +194,14 @@ nrfx_err_t sensors_read(env_data_t *env_data)
 }
 
 
-/**
- * @brief TWI events handler.
- */
-void twi_handler(nrfx_twi_evt_t const *p_event, void *p_context)
-{
-    switch (p_event->type)
-    {
-        case NRFX_TWI_EVT_DONE:
-            if (p_event->xfer_desc.type == NRFX_TWI_XFER_RX)
-            {
-                // NRF_LOG_INFO("Dataa tuli: %x", m_sample);
-            }
-            m_xfer_done = true;
-            break;
-        default:
-            break;
-    }
-}
-
+/******************************************************************************
+ *  PRIVATE FUNCTIONS
+ *****************************************************************************/
 
 /**
  * @brief Function for TWI initialization.
  */
-void twi_init(void)
+static void twi_init(void)
 {
     ret_code_t err_code;
 
@@ -215,6 +219,29 @@ void twi_init(void)
 
     nrfx_twi_enable(&m_twi);
 }
+
+
+/**
+ * @brief TWI events handler.
+ */
+static void twi_handler(nrfx_twi_evt_t const *p_event, void *p_context)
+{
+    switch (p_event->type)
+    {
+        case NRFX_TWI_EVT_DONE:
+            if (p_event->xfer_desc.type == NRFX_TWI_XFER_RX)
+            {
+                // NRF_LOG_INFO("Dataa tuli: %x", m_sample);
+            }
+            m_xfer_done = true;
+            break;
+        default:
+            break;
+    }
+}
+
+
+/* Used and required by bme680 driver. */
 
 
 /**@brief Wait for a period of time.
@@ -327,21 +354,6 @@ int8_t user_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint1
      * | Stop       | -                   |
      * |------------+---------------------|
      */
-    ret_code_t err_code = NRF_SUCCESS;
-
-    /*
-    // TXTX: write tx1 and tx2 without STOP in between
-    nrfx_twi_xfer_desc_t xfer = NRFX_TWI_XFER_DESC_TXTX(
-        dev_id,                   // slave address
-        &reg_addr,                // tx1 buffer
-        sizeof(reg_addr),         // tx1 buffer length
-        reg_data,                 // tx2 buffer
-        len                       // tx2 buffer length
-    );
-
-    err_code = nrfx_twi_xfer(&m_twi, &xfer, NULL); // Do we need: NRFX_TWI_FLAG_NO_XFER_EVT_HANDLER
-    APP_ERROR_CHECK(err_code);
-    */
 
 #if SENSORS_LOG_TWI_TRAFFIC
     NRF_LOG_INFO("Write to 0x%x, %u bytes:", reg_addr, len);
@@ -351,6 +363,7 @@ int8_t user_i2c_write(uint8_t dev_id, uint8_t reg_addr, uint8_t *reg_data, uint1
     }
 #endif // SENSORS_LOG_TWI_TRAFFIC
 
+    ret_code_t err_code = NRF_SUCCESS;
     uint8_t msg[] = {reg_addr, *reg_data}; // construct the message
 
     // set the register address & write to the register

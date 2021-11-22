@@ -7858,7 +7858,7 @@
 // <i> Log data is buffered and can be processed in idle.
 
 #ifndef NRF_LOG_DEFERRED
-#define NRF_LOG_DEFERRED 0 // default 1; Spacha
+#define NRF_LOG_DEFERRED 0 // default 1, SPACHA
 #endif
 
 // <q> NRF_LOG_FILTERS_ENABLED  - Enable dynamic filtering of logs.
