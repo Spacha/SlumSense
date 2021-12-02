@@ -77,7 +77,7 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
     ble_gatts_evt_write_t const * p_evt_write = &p_ble_evt->evt.gatts_evt.params.write;
     
     // Custom Value Characteristic Written to.
-    if (p_evt_write->handle == p_cus->custom_value_handles.value_handle)
+    if (p_evt_write->handle == p_cus->temp_value_handles.value_handle)
     {
         /*
         nrf_gpio_pin_toggle(LED_4);
@@ -97,7 +97,7 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
     }
 
     // Check if the Custom value CCCD is written to and that the value is the appropriate length, i.e 2 bytes.
-    if ((p_evt_write->handle == p_cus->custom_value_handles.cccd_handle)
+    if ((p_evt_write->handle == p_cus->temp_value_handles.cccd_handle)
         && (p_evt_write->len == 2)
        )
     {
@@ -179,7 +179,11 @@ static uint32_t custom_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t * 
 
     err_code = sd_ble_gatts_characteristic_add(p_cus->service_handle, &char_md,
                                                &attr_char_value,
-                                               &p_cus->custom_value_handles);
+                                               &p_cus->temp_value_handles);
+    err_code = sd_ble_gatts_characteristic_add(p_cus->service_handle, &char_md,
+                                               &attr_char_value,
+                                               &p_cus->pres_value_handles);
+
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
@@ -308,12 +312,18 @@ uint32_t ble_cus_custom_value_update(ble_cus_t *p_cus, env_data_t *new_data)
 
     gatts_value.len     = sizeof(uint16_t);
     gatts_value.offset  = 0;
-    gatts_value.p_value = (uint8_t*)&(new_data->temperature);
 
-    // Update database.
+    // Update temperature
+    gatts_value.p_value = (uint8_t*)&(new_data->temperature);
     err_code = sd_ble_gatts_value_set(p_cus->conn_handle,
-                                      p_cus->custom_value_handles.value_handle,
+                                      p_cus->temp_value_handles.value_handle,
                                       &gatts_value);
+    // Update pressure
+    gatts_value.p_value = (uint8_t*)&(new_data->pressure);
+    err_code = sd_ble_gatts_value_set(p_cus->conn_handle,
+                                      p_cus->pres_value_handles.value_handle,
+                                      &gatts_value);
+    if (err_code != NRF_SUCCESS)
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
@@ -326,7 +336,7 @@ uint32_t ble_cus_custom_value_update(ble_cus_t *p_cus, env_data_t *new_data)
 
         memset(&hvx_params, 0, sizeof(hvx_params));
 
-        hvx_params.handle = p_cus->custom_value_handles.value_handle;
+        hvx_params.handle = p_cus->temp_value_handles.value_handle;
         hvx_params.type   = BLE_GATT_HVX_NOTIFICATION;
         hvx_params.offset = gatts_value.offset;
         hvx_params.p_len  = &gatts_value.len;

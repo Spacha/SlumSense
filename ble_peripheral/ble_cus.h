@@ -73,6 +73,8 @@ typedef struct
 {
     ble_cus_evt_handler_t         evt_handler;                                  /**< Event handler to be called for handling events in the Custom Service. */
     uint16_t                      initial_temp_value;                           /**< Initial temperature value */
+    uint16_t                      initial_humi_value;                           /**< Initial humidity value */
+    uint16_t                      initial_pres_value;                           /**< Initial pressure value */
     ble_srv_cccd_security_mode_t  custom_value_char_attr_md;                    /**< Initial security level for Custom characteristics attribute */
 } ble_cus_init_t;
 
@@ -81,7 +83,9 @@ struct ble_cus_s
 {
     ble_cus_evt_handler_t         evt_handler;                                  /**< Event handler to be called for handling events in the Custom Service. */
     uint16_t                      service_handle;                               /**< Handle of Custom Service (as provided by the BLE stack). */
-    ble_gatts_char_handles_t      custom_value_handles;                         /**< Handles related to the Custom Value characteristic. */
+    ble_gatts_char_handles_t      temp_value_handles;                           /**< Handles related to the temperature value characteristic. */
+    ble_gatts_char_handles_t      humi_value_handles;                           /**< Handles related to the humidity value characteristic. */
+    ble_gatts_char_handles_t      pres_value_handles;                           /**< Handles related to the pressure value characteristic. */
     uint16_t                      conn_handle;                                  /**< Handle of the current connection (as provided by the BLE stack, is BLE_CONN_HANDLE_INVALID if not in a connection). */
     uint8_t                       uuid_type; 
 };
