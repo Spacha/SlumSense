@@ -79,8 +79,8 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
     // Custom Value Characteristic Written to.
     if (p_evt_write->handle == p_cus->custom_value_handles.value_handle)
     {
-        nrf_gpio_pin_toggle(LED_4);
         /*
+        nrf_gpio_pin_toggle(LED_4);
         if(*p_evt_write->data == 0x01)
         {
             nrf_gpio_pin_clear(20); 
@@ -124,7 +124,7 @@ static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
 
 /**@brief Function for adding the Custom Value characteristic.
  *
- * @param[in]   p_cus        Battery Service structure.
+ * @param[in]   p_cus        Custom Service structure.
  * @param[in]   p_cus_init   Information needed to initialize the service.
  *
  * @return      NRF_SUCCESS on success, otherwise an error code.
@@ -173,9 +173,9 @@ static uint32_t custom_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t * 
 
     attr_char_value.p_uuid    = &ble_uuid;
     attr_char_value.p_attr_md = &attr_md;
-    attr_char_value.init_len  = sizeof(uint8_t);
+    attr_char_value.init_len  = sizeof(uint16_t);
     attr_char_value.init_offs = 0;
-    attr_char_value.max_len   = sizeof(uint8_t);
+    attr_char_value.max_len   = sizeof(uint16_t);
 
     err_code = sd_ble_gatts_characteristic_add(p_cus->service_handle, &char_md,
                                                &attr_char_value,
@@ -287,8 +287,8 @@ void ble_cus_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context)
  *
  * @note 
  *       
- * @param[in]   p_bas          Custom Service structure.
- * @param[in]   Custom value 
+ * @param[in]   p_cus          Custom Service structure.
+ * @param[in]   new_data       Custom value.
  *
  * @return      NRF_SUCCESS on success, otherwise an error code.
  */
@@ -306,9 +306,9 @@ uint32_t ble_cus_custom_value_update(ble_cus_t *p_cus, env_data_t *new_data)
     // Initialize value struct.
     memset(&gatts_value, 0, sizeof(gatts_value));
 
-    gatts_value.len     = sizeof(uint8_t);
+    gatts_value.len     = sizeof(uint16_t);
     gatts_value.offset  = 0;
-    gatts_value.p_value = &(new_data->temperature);
+    gatts_value.p_value = (uint8_t*)&(new_data->temperature);
 
     // Update database.
     err_code = sd_ble_gatts_value_set(p_cus->conn_handle,

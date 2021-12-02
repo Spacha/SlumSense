@@ -21,14 +21,32 @@
 
 // TODO: maybe we should just use floats?
 // If we cannot use more than 1 byte, split it to MSB and LSB parts.
+
+// Fixed-point representations, see the comment below
 struct env_data_s {
-    uint8_t temperature;   // temperature x10 (1 decimal), degC
-    uint8_t pressure;      // pressure x10 (1 decimal), hPa
-    uint8_t humidity;      // relative humidity x10 (1 decimal), %
+    uint16_t temperature;   // temperature
+    uint16_t pressure;      // pressure
+    uint16_t humidity;      // relative humidity
+
+    /** Calculations (fixed point):
+     *
+     * Temperature [-70.00, 70.00+]:
+     *  real -> uint16_t: int  = (temp+70)*100
+     *  uint16_t -> real: temp = int/100-70
+     *
+     * Pressure [0.0, 6553.6]:
+     *  real -> uint16_t: int  = pres*10
+     *  uint16_t -> real: pres = int/10
+     *
+     * Humidity [0.0, 100.0]:
+     *  real -> uint16_t: int  = humi*10
+     *  uint16_t -> real: humi = int/10
+     */
+
 /*
-    float temperature;   // temperature x10 (1 decimal), degC
-    float pressure;      // pressure x10 (1 decimal), hPa
-    float humidity;      // relative humidity x10 (1 decimal), %
+    float temperature;
+    float pressure;
+    float humidity;
 */
 };
 
