@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Notifications
+SlumWay
 -------------
-Example showing how to add notifications to a characteristic and handle the responses.
-Updated on 2019-07-03 by hbldh <henrik.blidh@gmail.com>
+Gateway software for SlumSense.
 """
 
 import os
@@ -28,7 +27,7 @@ ADDRESS = (
 )
 
 def get_hashed_api_key():
-    ''' Get APi ke '''
+    ''' Get API key from environment. '''
     fail = False
     api_key = ""
     try:
