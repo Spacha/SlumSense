@@ -5,6 +5,8 @@ namespace App\Http\Requests;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Http\FormRequest;
 
+use App\Models\Gateway;
+
 class StoreMeasurementRequest extends FormRequest
 {
     /**
@@ -14,7 +16,15 @@ class StoreMeasurementRequest extends FormRequest
      */
     public function authorize(Request $request)
     {
-        return true; // no authorization here...
+        // authorize gateway
+        $gatewayKey = $request->input('gateway_key', '');
+        $gateway = Gateway::byKey($gatewayKey)->first();
+
+        if (!$gateway || $gateway->is_disabled) {
+            return false;
+        }
+
+        return true; // OK
     }
 
     /**

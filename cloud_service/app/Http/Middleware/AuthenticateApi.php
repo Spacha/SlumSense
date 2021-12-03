@@ -22,14 +22,6 @@ class AuthenticateApi
         if ($apiKey != md5( env('API_KEY') ))
             return $this->handleUnauthorized("Invalid API key.");
 
-        // authorize gateway
-        $gatewayKey = $request->input('gateway_key', '');
-        $gateway = Gateway::byKey($gatewayKey)->first();
-
-        if (!$gateway || $gateway->is_disabled) {
-            return $this->handleUnauthorized("Unauthorized gateway.");
-        }
-
         return $next($request);
     }
 

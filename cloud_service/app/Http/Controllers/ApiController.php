@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Events\MeasurementStored;
 use App\Http\Requests\StoreMeasurementRequest;
 use App\Http\Requests\UpdateMeasurementRequest;
 use App\Models\Measurement;
@@ -21,12 +22,24 @@ class ApiController extends Controller
     }
 
     /**
+     * Display a listing of the measurements.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function listMeasurements()
+    {
+        $measurements = Measurement::all();
+
+        return response()->json($measurements);
+    }
+
+    /**
      * Store a new measurement in storage.
      *
      * @param  \App\Http\Requests\StoreMeasurementRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreMeasurementRequest $request)
+    public function storeMeasurement(StoreMeasurementRequest $request)
     {
         $validated = $request->safe()->only([
             'gateway_key', 'temperature', 'pressure', 'humidity'
@@ -50,6 +63,9 @@ class ApiController extends Controller
                 "message" => "Error saving measurement"
             ], 400);
         }
+
+        // dispatch an event for websockets
+        MeasurementStored::dispatch($measurement);
 
         return response()->json([
             "message" => "Measurement stored",

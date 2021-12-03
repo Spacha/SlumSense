@@ -7,6 +7,15 @@
 import Vue from 'vue';
 require('./bootstrap');
 
+window.moment = require('moment');
+
+import { datetime, temperature, pressure, humidity } from './helpers.js';
+
+Vue.prototype.$datetime = datetime;
+Vue.prototype.$temperature = temperature;
+Vue.prototype.$pressure = pressure;
+Vue.prototype.$humidity = humidity;
+
 /**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue

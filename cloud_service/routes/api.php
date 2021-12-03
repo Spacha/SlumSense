@@ -15,5 +15,6 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function() {
-    Route::post('measurements', [App\Http\Controllers\ApiController::class, 'store']);
+    Route::get('measurements', [App\Http\Controllers\ApiController::class, 'listMeasurements']);
+    Route::post('measurements', [App\Http\Controllers\ApiController::class, 'storeMeasurement']);
 });
