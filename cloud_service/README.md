@@ -27,4 +27,12 @@ echo "cloud_service"> .git/info/sparse-checkout		# add only this folder to the c
 git checkout master					# finally checkout
 ```
 5. Laravel setup
-	* Copy .env.example, create keys, migrate database
+```shell
+cp .env.example
+nano .env						# update to match the server
+composer update
+php artisan key:generate				# application key
+php artisan migrate					# DB migrations
+npm i							# front-end
+npm run prod
+```
