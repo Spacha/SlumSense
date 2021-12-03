@@ -10,3 +10,21 @@ Its main purpose is to offer a REST API for the gateway(s) to use for saving sen
 		* Authentication via API key
 * Interactive Vue.js front-end
 * Plotting library?
+
+## Installation to the server
+
+1. Add a new subdomain slum.example.org
+2. Configure the subdomain (path: `~/slum.example.org/cloud_service`)
+	* also add SSH certificates and other generic stuff
+4. Sparse checkout the repository
+```shell
+cd ~
+git clone --no-checkout git@github.com:Spacha/SlumSense # clone without checkout
+mv SlumSense slum.example.org				# rename the folder (for nginx)
+cd slum.example.org
+git config core.sparseCheckout true			# enable sparse checkout
+echo "cloud_service"> .git/info/sparse-checkout		# add only this folder to the checkout
+git checkout master					# finally checkout
+```
+5. Laravel setup
+	* Copy .env.example, create keys, migrate database
