@@ -20,7 +20,6 @@
 #define SLUM_SLUMSENSE_H__
 
 // TODO: maybe we should just use floats?
-// If we cannot use more than 1 byte, split it to MSB and LSB parts.
 
 // Fixed-point representations, see the comment below
 // must be 64 bits of total size

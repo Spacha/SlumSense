@@ -21,6 +21,9 @@ ADDRESS = (
     #else "B9EA5233-37EF-4DD6-87A8-2A875E821C46"
 )
 
+def send_data(temp, pres, humi):
+    pass
+
 
 def notification_handler(sender, data):
     """Simple notification handler which prints the data received."""
@@ -37,21 +40,24 @@ def notification_handler(sender, data):
     print("{}\t => {} hPa".format( pres, round(pres/10.0, 2) ))
     print("{}\t => {} %".format( humi, round(humi/10.0, 2) ))
 
+    send_data(temp, pres, humi)
+
 
 
 async def main(address, char_uuid):
     async with BleakClient(address) as client:
         print(f"Connected: {client.is_connected}")
 
+        # loop = asyncio.get_event_loop()
+
         await client.start_notify(char_uuid, notification_handler)
-        await asyncio.sleep()
-        #await client.stop_notify(char_uuid)
+
+        while(True):
+            await asyncio.sleep(60.0)
+
+        # await asyncio.sleep(9999.0)
+        # await client.stop_notify(char_uuid)
 
 
 if __name__ == "__main__":
     asyncio.run(
-        main(
-            sys.argv[1] if len(sys.argv) > 1 else ADDRESS,
-            sys.argv[2] if len(sys.argv) > 2 else CHARACTERISTIC_UUID,
-        )
-    )
