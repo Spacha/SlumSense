@@ -14,7 +14,24 @@
                         </div>
                     @endif
 
-                    {{ __('You are logged in!') }}
+                    <table class="table">
+                        <!--<thead>
+                            <tr>
+                                <th scope="col"></th>
+                                <th scope="col"></th>
+                            </tr>
+                        </thead>-->
+                        <tbody>
+                            <tr>
+                                <th scope="row">API key</th>
+                                <td><code>{{ env('API_KEY') }}</code></td>
+                            </tr>
+                            <tr>
+                                <th scope="row">API key (MD5)</th>
+                                <td><code>{{ md5(env('API_KEY')) }}</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
             </div>

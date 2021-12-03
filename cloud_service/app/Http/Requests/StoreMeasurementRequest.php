@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Http\Request;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreMeasurementRequest extends FormRequest
@@ -11,9 +12,9 @@ class StoreMeasurementRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(Request $request)
     {
-        return false;
+        return true; // no authorization here...
     }
 
     /**
@@ -24,7 +25,10 @@ class StoreMeasurementRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'gateway_key'   => 'required|string|min:8|max:8|exists:gateways,key',
+            'temperature'   => 'required|numeric|between:-70.0,70.0',
+            'pressure'      => 'required|numeric|between:0.0,3000.0',
+            'humidity'      => 'required|numeric|between:0.0,100.0',
         ];
     }
 }

@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Http\Requests\StoreMeasurementRequest;
 use App\Http\Requests\UpdateMeasurementRequest;
 use App\Models\Measurement;
+use App\Models\Gateway;
 
 class ApiController extends Controller
 {
@@ -15,7 +17,7 @@ class ApiController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api');
+        //
     }
 
     /**
@@ -25,9 +27,32 @@ class ApiController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(StoreMeasurementRequest $request)
+    //public function store(Request $request)
     {
-        return response()->json([
-            "message" => "All is good!"
+        $validated = $request->safe()->only([
+            'gateway_key', 'temperature', 'pressure', 'humidity'
         ]);
+
+        $gateway = Gateway::findByKey($validated['gateway_key']);
+
+        $measurement = new Measurement();
+        $measurement->gateway_id    = $gateway->id;
+        $measurement->temperature   = $validated['temperature'];
+        $measurement->pressure      = $validated['pressure'];
+        $measurement->humidity      = $validated['humidity'];
+        $measurement->version       = env('API_VERSION');
+
+        // try saving the measurement
+        $success = $measurement->save();
+
+        if (!$success) {
+            return response()->json([
+                "message" => "Error saving measurement"
+            ], 400);
+        }
+
+        return response()->json([
+            "message" => "Measurement stored",
+        ], 201);
     }
 }

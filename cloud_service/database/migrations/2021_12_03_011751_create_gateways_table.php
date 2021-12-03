@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateMeasurementsTable extends Migration
+class CreateGatewaysTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,13 +13,11 @@ class CreateMeasurementsTable extends Migration
      */
     public function up()
     {
-        Schema::create('measurements', function (Blueprint $table) {
+        Schema::create('gateways', function (Blueprint $table) {
             $table->id();
-            $table->integer('gateway_id');
-            $table->float('temperature')->nullable();
-            $table->float('pressure')->nullable();
-            $table->float('humidity')->nullable();
-            $table->string('version')->default(0.0);
+            $table->string('name');
+            $table->string('key'); // Str::random(8);
+            $table->timestamp('disabled_at')->nullable();
             $table->timestamps();
         });
     }
@@ -31,6 +29,6 @@ class CreateMeasurementsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('measurements');
+        Schema::dropIfExists('gateways');
     }
 }
