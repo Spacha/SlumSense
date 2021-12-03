@@ -23,10 +23,12 @@
 // If we cannot use more than 1 byte, split it to MSB and LSB parts.
 
 // Fixed-point representations, see the comment below
+// must be 64 bits of total size
 struct env_data_s {
     uint16_t temperature;   // temperature
     uint16_t pressure;      // pressure
     uint16_t humidity;      // relative humidity
+    uint16_t reserved;      // reserved
 
     /** Calculations (fixed point):
      *

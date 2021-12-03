@@ -192,6 +192,9 @@ static void notification_timeout_handler(void *p_context)
     NRF_LOG_INFO("Reading data.");
 
     sensors_read(&m_env_data);
+    //m_env_data.temperature = 0x12;
+    //m_env_data.pressure = 0x34;
+    //m_env_data.humidity = 0x56;
 
     NRF_LOG_INFO("Temperature: %d °C", m_env_data.temperature / 100.0f - 70);
     NRF_LOG_INFO("Pressure:    %d hPa", m_env_data.pressure / 10.0f);

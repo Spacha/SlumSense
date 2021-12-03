@@ -173,16 +173,13 @@ static uint32_t custom_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t * 
 
     attr_char_value.p_uuid    = &ble_uuid;
     attr_char_value.p_attr_md = &attr_md;
-    attr_char_value.init_len  = sizeof(uint16_t);
+    attr_char_value.init_len  = sizeof(uint64_t);
     attr_char_value.init_offs = 0;
-    attr_char_value.max_len   = sizeof(uint16_t);
+    attr_char_value.max_len   = sizeof(uint64_t);
 
     err_code = sd_ble_gatts_characteristic_add(p_cus->service_handle, &char_md,
                                                &attr_char_value,
                                                &p_cus->temp_value_handles);
-    err_code = sd_ble_gatts_characteristic_add(p_cus->service_handle, &char_md,
-                                               &attr_char_value,
-                                               &p_cus->pres_value_handles);
 
     if (err_code != NRF_SUCCESS)
     {
@@ -310,20 +307,15 @@ uint32_t ble_cus_custom_value_update(ble_cus_t *p_cus, env_data_t *new_data)
     // Initialize value struct.
     memset(&gatts_value, 0, sizeof(gatts_value));
 
-    gatts_value.len     = sizeof(uint16_t);
+    gatts_value.len     = sizeof(uint64_t);
     gatts_value.offset  = 0;
 
-    // Update temperature
-    gatts_value.p_value = (uint8_t*)&(new_data->temperature);
+    // Update data
+    gatts_value.p_value = (uint8_t*)new_data;
     err_code = sd_ble_gatts_value_set(p_cus->conn_handle,
                                       p_cus->temp_value_handles.value_handle,
                                       &gatts_value);
-    // Update pressure
-    gatts_value.p_value = (uint8_t*)&(new_data->pressure);
-    err_code = sd_ble_gatts_value_set(p_cus->conn_handle,
-                                      p_cus->pres_value_handles.value_handle,
-                                      &gatts_value);
-    if (err_code != NRF_SUCCESS)
+
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
