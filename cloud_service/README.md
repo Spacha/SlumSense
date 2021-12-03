@@ -28,11 +28,15 @@ $ git checkout master					# finally checkout
 ```
 5. Laravel setup
 ```shell
-$ cp .env.example
+$ cp .env.example .env
 $ nano .env						# update to match the server
 $ composer update
 $ php artisan key:generate				# application key
 $ php artisan migrate					# DB migrations
+$ php artisan storage:link
+$ chmod -R 0777 storage 				# permissions to storage
 $ npm i							# front-end
 $ npm run prod
 ```
+
+If `npm run prod` hangs, try `yarn run prod` or just `npm run dev`.
