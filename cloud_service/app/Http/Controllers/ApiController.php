@@ -65,7 +65,7 @@ class ApiController extends Controller
         }
 
         // dispatch an event for websockets
-        MeasurementStored::dispatch($measurement);
+        // MeasurementStored::dispatch($measurement);
 
         return response()->json([
             "message" => "Measurement stored",
