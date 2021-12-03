@@ -1,7 +1,10 @@
 <template>
     <div>
         <h4>Measurements</h4>
-        <a href="/measurements" class="btn btn-primary mb-2">All measurements</a>
+        <div class="mb-2">
+            <a class="btn btn-secondary" v-on:click="getMeasurements"><i class="fa fa-sync"></i></a>
+            <a href="/measurements" class="btn btn-primary">All measurements</a>
+        </div>
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -29,23 +32,15 @@
 </template>
 
 <script>
+const MAX_MEASUREMENTS = 50;
+
 export default {
     data: () => ({
         measurements: []
     }),
     mounted() {
-        var mainContext = this
-        axios.get('/api/v1/measurements?API_KEY=749e1a86cad252aacf2c05f324e7d72a')
-            .then(function (response) {
-                // handle success
-                console.log(response);
-                mainContext.measurements = response.data
-            })
-            .catch(function (error) {
-                // handle error
-                console.log(error);
-            });
-        console.log('Component mounted.')
+        console.log('Component mounted.');
+        this.getMeasurements();
         /*
         Echo.channel('measurements')
             .listen('MeasurementStored', (e) => {
@@ -53,6 +48,21 @@ export default {
                 this.measurements.push(e.measurement);
         });
         */
+    },
+    methods: {
+        getMeasurements()
+        {
+            var mainContext = this
+            axios.get(api_url(`measurements/${MAX_MEASUREMENTS}`))
+            .then(function (response) {
+                // handle success
+                mainContext.measurements = response.data;
+            })
+            .catch(function (error) {
+                // handle error
+                console.log(error);
+            });
+        }
     }
 }
 </script>

@@ -26,9 +26,11 @@ class ApiController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function listMeasurements()
+    public function listMeasurements($limit = 0)
     {
-        $measurements = Measurement::all();
+        $measurements = ($limit > 0)
+            ? Measurement::latest()->take($limit)->get()
+            : Measurement::all();
 
         return response()->json($measurements);
     }

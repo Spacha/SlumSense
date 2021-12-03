@@ -9,8 +9,9 @@ require('./bootstrap');
 
 window.moment = require('moment');
 
-import { datetime, temperature, pressure, humidity } from './helpers.js';
+import { api_url, datetime, temperature, pressure, humidity } from './helpers.js';
 
+window.api_url = api_url;
 Vue.prototype.$datetime = datetime;
 Vue.prototype.$temperature = temperature;
 Vue.prototype.$pressure = pressure;
