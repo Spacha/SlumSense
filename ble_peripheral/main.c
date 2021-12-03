@@ -74,7 +74,7 @@
 #define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(30000)                  /**< Time between each call to sd_ble_gap_conn_param_update after the first call (30 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT    3                                       /**< Number of attempts before giving up the connection parameter negotiation. */
 
-#define NOTIFICATION_INTERVAL           APP_TIMER_TICKS(2000)                   /**< Interval of sending notifications when enabled. */
+#define NOTIFICATION_INTERVAL           APP_TIMER_TICKS(30000)                  /**< Interval of sending notifications when enabled. */
 
 #define SEC_PARAM_BOND                  1                                       /**< Perform bonding. */
 #define SEC_PARAM_MITM                  0                                       /**< Man In The Middle protection not required. */
@@ -192,6 +192,9 @@ static void notification_timeout_handler(void *p_context)
     NRF_LOG_INFO("Reading data.");
 
     sensors_read(&m_env_data);
+    //m_env_data.temperature = 0x12;
+    //m_env_data.pressure = 0x34;
+    //m_env_data.humidity = 0x56;
 
     NRF_LOG_INFO("Temperature: %d °C", m_env_data.temperature / 100.0f - 70);
     NRF_LOG_INFO("Pressure:    %d hPa", m_env_data.pressure / 10.0f);
