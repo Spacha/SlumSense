@@ -46,16 +46,12 @@ export default {
                 console.log(error);
             });
         console.log('Component mounted.')
+        /*
         Echo.channel('measurements')
             .listen('MeasurementStored', (e) => {
                 console.log(e.measurement);
                 this.measurements.push(e.measurement);
         });
-        /*
-        Echo.channel('measurements')
-            .listen('MeasurementAdded', (e) => {
-                this.measurements = e.measurements
-            })
         */
     }
 }
