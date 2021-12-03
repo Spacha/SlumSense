@@ -24,10 +24,11 @@ class AuthenticateApi
 
         // authorize gateway
         $gatewayKey = $request->input('gateway_key', '');
-        $gateway = Gateway::findByKey($gatewayKey);
+        $gateway = Gateway::byKey($gatewayKey)->first();
 
-        if (empty($gateway) || $gateway->is_disabled)
+        if (!$gateway || $gateway->is_disabled) {
             return $this->handleUnauthorized("Unauthorized gateway.");
+        }
 
         return $next($request);
     }

@@ -30,14 +30,14 @@ class Gateway extends Model
     }
 
     /**
-     * Get the first gateway that has the given key.
+     * Get gateways with given key.
      *
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @param string $key
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeFindByKey($query, $key)
+    public function scopeByKey($query, $key)
     {
-        return $query->where('key', $key)->first();
+        return $query->where('key', $key);
     }
 }

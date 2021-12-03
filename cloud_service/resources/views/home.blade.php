@@ -76,7 +76,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="3">No gateways.</td>
+                                <td colspan="3">No measurements.</td>
                             </tr>
                             @endforelse
                         </tbody>
