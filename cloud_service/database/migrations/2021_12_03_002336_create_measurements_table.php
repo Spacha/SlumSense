@@ -16,9 +16,9 @@ class CreateMeasurementsTable extends Migration
         Schema::create('measurements', function (Blueprint $table) {
             $table->id();
             $table->integer('gateway_id');
-            $table->float('temperature')->nullable();
-            $table->float('pressure')->nullable();
-            $table->float('humidity')->nullable();
+            $table->float('temperature', 8, 3)->nullable();
+            $table->float('pressure', 8, 3)->nullable();
+            $table->float('humidity', 8, 3)->nullable();
             $table->string('version')->default(0.0);
             $table->timestamps();
         });

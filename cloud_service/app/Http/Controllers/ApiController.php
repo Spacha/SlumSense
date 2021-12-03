@@ -27,7 +27,6 @@ class ApiController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(StoreMeasurementRequest $request)
-    //public function store(Request $request)
     {
         $validated = $request->safe()->only([
             'gateway_key', 'temperature', 'pressure', 'humidity'
@@ -35,6 +34,7 @@ class ApiController extends Controller
 
         $gateway = Gateway::findByKey($validated['gateway_key']);
 
+        // create a new measurement resource
         $measurement = new Measurement();
         $measurement->gateway_id    = $gateway->id;
         $measurement->temperature   = $validated['temperature'];
