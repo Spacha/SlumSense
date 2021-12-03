@@ -32,7 +32,7 @@ class ApiController extends Controller
             'gateway_key', 'temperature', 'pressure', 'humidity'
         ]);
 
-        $gateway = Gateway::findByKey($validated['gateway_key']);
+        $gateway = Gateway::byKey($validated['gateway_key'])->first();
 
         // create a new measurement resource
         $measurement = new Measurement();
