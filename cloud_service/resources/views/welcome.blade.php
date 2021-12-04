@@ -19,17 +19,14 @@
         <style>
             body {
                 font-family: 'Nunito', sans-serif;
-            }
-            h1 {
-                /*color: #eee;
-                font-size: 4em;*/
+                background: var(--bs-body-bg);
             }
         </style>
     </head>
     <body class="antialiased">
-        <div class="relative flex items-top justify-center min-h-screen bg-gray-100 dark:bg-gray-900 sm:items-center py-4 sm:pt-0">
+        <div class="relative flex items-top justify-center min-h-screen items-center py-4 sm:pt-0">
             @if (Route::has('login'))
-                <div class="hidden fixed top-0 right-0 px-6 py-4 sm:block">
+                <div class="fixed top-0 right-0 px-6 py-4 text-align">
                     @auth
                         <a href="{{ url('/home') }}" class="text-sm text-gray-700 dark:text-gray-500 underline">Dashboard</a>
                     @else
@@ -44,9 +41,9 @@
 
             <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
                 <div class="flex flex-column justify-center pt-8 sm:justify-start sm:pt-0">
-                    <h1 class="display-2 text-light"><i class="fab fa-angellist"></i> SlumSense</h1>
+                    <h1 class="display-2 theme-color"><i class="fab fa-angellist"></i> SlumCloud</h1>
                     <div class="text-center">
-                        <span class="text-light">by <a href="https://spacha.dev">Spacha</a></span>
+                        <span class="text-muted">by <a href="https://spacha.dev">Spacha</a></span>
                     </div>
                     <!--<svg viewBox="0 0 651 192" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-16 w-auto text-gray-700 sm:h-20">
                         <g clip-path="url(#clip0)" fill="#EF3B2D">

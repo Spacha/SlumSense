@@ -15892,3 +15892,10 @@ textarea.form-control-lg {
     display: none !important;
   }
 }
+:root {
+  --theme-color: #404370;
+}
+
+.theme-color {
+  color: var(--theme-color) !important;
+}

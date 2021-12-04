@@ -11,6 +11,14 @@
 
 // @import '~@fortawesome/fontawesome-free/scss/brands.scss';
 
+:root {
+	--theme-color: #404370;
+}
+
+.theme-color {
+	color: var(--theme-color) !important;
+}
+
 table.table {
 	thead {
 		// background: #eeeef7;
