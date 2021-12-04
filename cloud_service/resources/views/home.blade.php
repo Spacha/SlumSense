@@ -33,6 +33,7 @@
                         <thead>
                             <tr>
                                 <th scope="col">#</th>
+                                <th scope="col">Name</th>
                                 <th scope="col">Key</th>
                                 <th scope="col">State</th>
                             </tr>
@@ -41,9 +42,14 @@
                             @forelse($gateways as $gateway)
                             <tr>
                                 <th scope="row">{{ $gateway->id }}</th>
+                                <td>{{ $gateway->name }}</td>
                                 <td><code>{{ $gateway->key }}</code></td>
                                 <td class="fw-bold {{ $gateway->is_active ? 'text-success' : 'text-danger' }}">
-                                    {{ $gateway->is_active ? 'ACTIVE' : 'DISABLED' }}
+                                    @if($gateway->is_active)
+                                        <span class="badge bg-success">Active</span>
+                                    @else
+                                        <span class="badge bg-danger">Disabled</span>
+                                    @endif
                                 </td>
                             </tr>
                             @empty
