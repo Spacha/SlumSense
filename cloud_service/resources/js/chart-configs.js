@@ -56,8 +56,8 @@ export const tempChartConfig = {
 				type: 'linear',
 				display: true,
 				position: 'left',
-				min: -5,
-				max: 35
+				// min: -5,
+				// max: 35
 			}
 		}
 	}
@@ -108,8 +108,8 @@ export const presChartConfig = {
 				type: 'linear',
 				display: true,
 				position: 'left',
-				min: 950,
-				max: 1050
+				// min: 950,
+				// max: 1050
 			}
 		}
 	}

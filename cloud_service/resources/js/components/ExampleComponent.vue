@@ -64,20 +64,27 @@ import { tempChartConfig, presChartConfig, humiChartConfig } from '../chart-conf
 
 class Period {
     // period in hours
-    constructor(hours, display) {
+    constructor(hours, display, unit = 'hour') {
         this.hours = hours
         this.display = display
+        this.unit = unit
     }
     getPeriod() {
         return [moment().subtract(this.hours, 'hours'), moment()]
     }
+    get from() {
+        return this.getPeriod()[0].unix();
+    }
+    get to() {
+        return this.getPeriod()[1].unix();
+    }
 }
 
 const periods = [
-    new Period(1, '1h'),
-    new Period(6, '6h'),
-    new Period(24, '24h'),
-    new Period(7*24, 'Week')
+    new Period(1, '1h', 'minute'),
+    new Period(6, '6h', 'hour'),
+    new Period(24, '24h', 'hour'),
+    new Period(7*24, 'Week', 'day')
 ]
 
 export default {
@@ -88,9 +95,15 @@ export default {
         tempChartConfig: tempChartConfig,
         presChartConfig: presChartConfig,
         humiChartConfig: humiChartConfig,
+        chartRefs: []
     }),
     mounted() {
-        console.log('Component mounted.');
+        this.chartRefs = [
+            this.$refs.tempChart,
+            this.$refs.presChart,
+            this.$refs.humiChart
+        ]
+        
         this.getMeasurements();
         /*
         Echo.channel('measurements')
@@ -135,8 +148,14 @@ export default {
         },
 
         getMeasurements() {
-            var mainContext = this
-            axios.get(api_url(`measurements/${MAX_MEASUREMENTS}`))
+            var mainContext = this;
+
+            // set the time period
+            let params = {
+                from: this.currentPeriod.from,
+                to: this.currentPeriod.to
+            }
+            axios.get(api_url(`measurements`, params))
             .then(function (response) {
                 // handle success
                 mainContext.measurements = response.data;
@@ -151,6 +170,12 @@ export default {
 
         changeMeasPeriod(hours) {
             this.currentPeriod = this.periods.find(period => period.hours == hours);
+            
+            // update the time axis units for each chart
+            this.chartRefs.forEach(ref => {
+                let options = ref.chart.config.options;
+                options.scales.x.time.unit = this.currentPeriod.unit;
+            });
             this.getMeasurements();
         }
     }

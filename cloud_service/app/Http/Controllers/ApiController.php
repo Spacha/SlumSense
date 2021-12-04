@@ -9,6 +9,8 @@ use App\Http\Requests\UpdateMeasurementRequest;
 use App\Models\Measurement;
 use App\Models\Gateway;
 
+use Carbon\Carbon;
+
 class ApiController extends Controller
 {
     /**
@@ -26,11 +28,17 @@ class ApiController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function listMeasurements($limit = 0)
+    public function listMeasurements(Request $request)
     {
-        $measurements = ($limit > 0)
-            ? Measurement::latest()->take($limit)->get()
-            : Measurement::all();
+        // if 'from' is not provided, set the beginning to year 1970...
+        // if 'to' is not provided, set the end to current time...
+        $from = Carbon::createFromTimestamp($request->input('from') ?? 0);
+        $to = Carbon::now();
+
+        if (!empty($request->input('to')))
+            $to->timestamp = $request->input('to');
+
+        $measurements = Measurement::whereBetween('created_at', [$from, $to])->get();
 
         return response()->json($measurements);
     }

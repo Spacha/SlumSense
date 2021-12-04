@@ -4,8 +4,14 @@ export function api_key_param() {
 
 // *****************************************************************************
 
-export function api_url(path) {
-    return '/api/v1/' + path + api_key_param();
+export function api_url(path, params = {}) {
+    let url = '/api/v1/' + path + api_key_param();  // add API key to the url
+
+    // add parameters to the url
+    for(const [key, value] of Object.entries(params)) {
+        url += `&${key}=${value}`;      // &key1=param1&key2=param2...
+    }
+    return url;
 }
 
 export class Format

@@ -90,8 +90,6 @@ export default {
 					newData.forEach(d => data.datasets[0].data.push(d));
 				}
 
-				console.log(data);
-
 				this.chart.update();
 			}
 		}
