@@ -34,9 +34,11 @@ class ApiController extends Controller
          * Filters:
          *     from:    Unix timestamp, self explanatory
          *     to:      Unix timestamp, self explanatory
-         *     max:     If defined, evenly skip some results to decrease
-         *              result size. Basically a downsampler.
+         *     softmax: If defined, evenly skip some results to decrease
+         *              result size. Basically a downsampler, but worse
+         *              (see the comment below).
          */
+
         // if 'from' is not provided, set the beginning to year 1970...
         // if 'to' is not provided, set the end to current time...
         $from = Carbon::createFromTimestamp($request->input('from') ?? 0);
@@ -48,6 +50,7 @@ class ApiController extends Controller
 
         $measurements = Measurement::whereBetween('created_at', [$from, $to]);
 
+        // downsamling logic...
         if ($softmax > 0) {
             $totalCount = $measurements->count();
             $downsampling = floor($totalCount / $softmax);
@@ -87,7 +90,9 @@ class ApiController extends Controller
              */
         }
 
-        return response()->json($measurements->get());
+        return response()->json(
+            $measurements->orderByDesc('created_at')->get()
+        );
     }
 
     /**
