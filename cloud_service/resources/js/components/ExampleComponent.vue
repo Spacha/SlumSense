@@ -15,7 +15,7 @@
                 <!--<a class="btn btn-secondary" v-on:click="addRandomMeasurement"><i class="fa fa-plus"></i></a>-->
                     <a class="btn btn-primary"
                         v-for="period in periods"
-                        v-class="{ active: period.hours == currentPeriod.hours}"
+                        :class="{ active: period.hours == currentPeriod.hours}"
                         v-on:click="changeMeasPeriod(period.hours)">
                         {{ period.display }}
                     </a>

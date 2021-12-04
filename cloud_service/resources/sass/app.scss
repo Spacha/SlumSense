@@ -6,21 +6,80 @@
 // Variables
 @import 'variables';
 
-// Bootstrap
-@import '~bootstrap/scss/bootstrap';
+$card-cap-bg: #000;
+
 
 // @import '~@fortawesome/fontawesome-free/scss/brands.scss';
 
-:root {
-	--theme-color: #404370;
-}
+/**********************************************************
+ * Globals
+ *********************************************************/
 
+$theme-color: #404370;
+
+:root {
+	--theme-color: $theme-color;
+}
 .theme-color {
 	color: var(--theme-color) !important;
 }
 
-table.table {
-	thead {
-		// background: #eeeef7;
+/**********************************************************
+ * Bootstrap theming
+ *********************************************************/
+
+$card-cap-bg: rgba($theme-color, 0.11);
+
+// Bootstrap
+@import '~bootstrap/scss/bootstrap';
+
+/**********************************************************
+ * Others...
+ *********************************************************/
+
+.card-panels-container {
+	justify-content: flex-start;
+	.card {
+		width: 12rem;
+
+		&:not(:last-child) {
+			margin-right: 1rem;
+		}
+	}
+}
+
+.card-link {
+	color: #3490dc;
+    text-decoration: none;
+    background-color: transparent;
+}
+
+@media (min-width: 992px) {
+	.custom-col-container {
+		max-width: 992px;
+	}
+}
+
+// Custom container
+
+.container-custom {
+	max-width: 90%;
+}
+
+@media (min-width: 992px) {
+	.container-custom {
+		max-width: 67%;
+	}
+}
+
+@media (min-width: 768px) {
+	.container-custom {
+		max-width: 67%;
+	}
+}
+
+@media (min-width: 576px) {
+	.container-custom {
+	    max-width: 90%;
 	}
 }
