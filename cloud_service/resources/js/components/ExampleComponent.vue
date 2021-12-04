@@ -58,7 +58,7 @@
 </template>
 
 <script>
-const MAX_MEASUREMENTS = 50;
+const MAX_MEASUREMENTS = 80;
 
 import { tempChartConfig, presChartConfig, humiChartConfig } from '../chart-configs.js'
 
@@ -103,7 +103,7 @@ export default {
             this.$refs.presChart,
             this.$refs.humiChart
         ]
-        
+
         this.getMeasurements();
         /*
         Echo.channel('measurements')
@@ -142,28 +142,28 @@ export default {
         },
 
         addMeasurements(tempData, presData, humiData, clear = false) {
-            this.$refs.tempChart.addData(tempData, clear)
-            this.$refs.presChart.addData(presData, clear)
-            this.$refs.humiChart.addData(humiData, clear)
+            this.$refs.tempChart.addData(tempData, clear);
+            this.$refs.presChart.addData(presData, clear);
+            this.$refs.humiChart.addData(humiData, clear);
         },
 
         getMeasurements() {
             var mainContext = this;
 
-            // set the time period
+            // set the time period and maximum
             let params = {
                 from: this.currentPeriod.from,
-                to: this.currentPeriod.to
+                to: this.currentPeriod.to,
+                softmax: MAX_MEASUREMENTS // Read about softmax in the back-end (ApiController).
             }
             axios.get(api_url(`measurements`, params))
             .then(function (response) {
-                // handle success
+                // store the results & refresh the charts
                 mainContext.measurements = response.data;
-                // const [tempData, presData, humiData] = mainContext.chartData;
                 mainContext.addMeasurements(...mainContext.chartData, true);
             })
             .catch(function (error) {
-                // handle error
+                // handle error (or not)
                 console.log(error);
             });
         },
@@ -176,6 +176,7 @@ export default {
                 let options = ref.chart.config.options;
                 options.scales.x.time.unit = this.currentPeriod.unit;
             });
+
             this.getMeasurements();
         }
     }
