@@ -19,7 +19,7 @@ export const tempChartConfig = {
 		labels: [],
 		datasets: [{
 			borderWidth: 1,
-			pointRadius: 2,
+			pointRadius: 0,
 			label: 'Temperature (°C)',
 			backgroundColor: 'rgb(255, 99, 132)',
 			borderColor: 'rgb(255, 99, 132)',
@@ -71,7 +71,7 @@ export const presChartConfig = {
 		labels: [],
 		datasets: [{
 			borderWidth: 1,
-			pointRadius: 2,
+			pointRadius: 0,
 			label: 'Pressure (hPa)',
 			backgroundColor: 'rgb(254, 217, 131)',
 			borderColor: 'rgb(254, 217, 131)',
@@ -124,7 +124,7 @@ export const humiChartConfig = {
 		labels: [],
 		datasets: [{
 			borderWidth: 1,
-			pointRadius: 2,
+			pointRadius: 0,
 			label: 'Humidity (%)',
 			backgroundColor: 'rgb(152, 201, 238)',
 			borderColor: 'rgb(152, 201, 238)',
