@@ -25,9 +25,13 @@ class HomeController extends Controller
      */
     public function index()
     {
+        // Get some statistics
+        $latestMeasurement = Measurement::latest()->first();
+
         $stats = new \stdClass();
         $stats->disabledGateways    = Gateway::disabled()->count();
         $stats->totalGateways       = Gateway::count();
+        $stats->latestMeasurement   = !empty($latestMeasurement) ? $latestMeasurement->created_at->diffForHumans() : '';
         $stats->totalMeasurements   = Measurement::count();
         $stats->totalAlerts         = 0;
         $stats->mutedAlerts         = 0;
