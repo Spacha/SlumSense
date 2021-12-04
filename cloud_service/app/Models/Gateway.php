@@ -26,7 +26,7 @@ class Gateway extends Model
      */
     public function getIsDisabledAttribute()
     {
-        return !empty($this->disabled_at) && ($this->disabled_at < now());
+        return !empty($this->disabled_at) && ($this->disabled_at <= now());
     }
 
     /**
@@ -39,5 +39,17 @@ class Gateway extends Model
     public function scopeByKey($query, $key)
     {
         return $query->where('key', $key);
+    }
+
+    /**
+     * Get gateways that are disabled.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeDisabled($query)
+    {
+        return $query->whereNotNull('disabled_at')
+            ->where('disabled_at', '<=', now());
     }
 }

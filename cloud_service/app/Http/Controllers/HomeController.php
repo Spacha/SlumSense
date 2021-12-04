@@ -25,9 +25,17 @@ class HomeController extends Controller
      */
     public function index()
     {
+        $stats = new \stdClass();
+        $stats->disabledGateways    = Gateway::disabled()->count();
+        $stats->totalGateways       = Gateway::count();
+        $stats->totalMeasurements   = Measurement::count();
+        $stats->totalAlerts         = 0;
+        $stats->mutedAlerts         = 0;
+
         return view('home', [
             'gateways' => Gateway::all(),
             'measurements' => Measurement::all(),
+            'stats' => $stats
         ]);
     }
 }

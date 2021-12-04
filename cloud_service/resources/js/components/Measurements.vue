@@ -10,7 +10,7 @@
         <div class="d-flex flex-column justify-content-center align-items-center border-bottom p-3">
 
             <div>
-                <a class="btn btn-secondary" v-on:click="getMeasurements"><i class="fa fa-sync"></i></a>
+                <a class="btn btn-outline-primary" v-on:click="getMeasurements"><i class="fa fa-sync"></i></a>
                 <div class="btn-group px-2">
                 <!--<a class="btn btn-secondary" v-on:click="addRandomMeasurement"><i class="fa fa-plus"></i></a>-->
                     <a class="btn btn-primary"

@@ -34,7 +34,7 @@ Vue.prototype.$format = Format;     // for access within Vue
 // const files = require.context('./', true, /\.vue$/i)
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
 
-Vue.component('example-component', require('./components/ExampleComponent.vue').default);
+Vue.component('measurements', require('./components/Measurements.vue').default);
 Vue.component('line-chart', require('./components/LineChart.vue').default);
 
 /**
@@ -45,5 +45,5 @@ Vue.component('line-chart', require('./components/LineChart.vue').default);
 
 const app = new Vue({
     el: '#app',
-    render: h => h('example-component')
+    render: h => h('measurements')
 });

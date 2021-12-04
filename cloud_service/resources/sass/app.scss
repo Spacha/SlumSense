@@ -17,11 +17,8 @@ $card-cap-bg: #000;
 
 $theme-color: #404370;
 
-:root {
-	--theme-color: $theme-color;
-}
 .theme-color {
-	color: var(--theme-color) !important;
+	color: $theme-color !important;
 }
 
 /**********************************************************

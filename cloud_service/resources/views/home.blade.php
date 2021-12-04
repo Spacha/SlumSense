@@ -12,9 +12,9 @@
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Gateways</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">Disabled: 0</h6>
+                            <h6 class="card-subtitle mb-2 text-muted">Disabled: {{ $stats->disabledGateways }}</h6>
                             <!--<p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>-->
-                            <h1>1</h1>
+                            <h1>{{ $stats->totalGateways }}</h1>
                             <a href="#" class="card-link">
                                 <i class="fas fa-sitemap"></i>
                                 View gateways
@@ -26,10 +26,10 @@
                 <div class="col">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">Service alerts</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">Muted: 2</h6>
+                            <h5 class="card-title">Alerts</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">Muted: {{ $stats->mutedAlerts }}</h6>
                             <!--<p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>-->
-                            <h1>4</h1>
+                            <h1>{{ $stats->totalAlerts }}</h1>
                             <a href="#" class="card-link">
                                 <i class="far fa-bell"></i>
                                 View alerts
@@ -42,9 +42,9 @@
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Measurements</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">Total: 21 839</h6>
+                            <h6 class="card-subtitle mb-2 text-muted">Total: {{ $stats->totalMeasurements }}</h6>
                             <!--<p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>-->
-                            <h1>12 344</h1>
+                            <h1>{{ $stats->totalMeasurements }}</h1>
                             <a href="#" class="card-link">
                                 <i class="far fa-list-alt"></i>
                                 View measurements
