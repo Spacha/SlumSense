@@ -4,8 +4,10 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
+
+            @if (Auth::user()->isAdmin())
             <div class="card">
-                <div class="card-header">{{ __('Dashboard') }}</div>
+                <div class="card-header">{{ __('Management') }}</div>
 
                 <div class="card-body">
                     @if (session('status'))
@@ -61,6 +63,7 @@
                     </table>                        
                     </div>
                 </div>
+            @endif
 
             <div class="card mt-3">
                 <div class="card-header">{{ __('Measurements') }}</div>

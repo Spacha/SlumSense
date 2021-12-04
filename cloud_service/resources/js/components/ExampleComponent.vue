@@ -31,7 +31,7 @@
             <line-chart ref="humiChart" :period="currentPeriod" :config="humiChartConfig" />
         </div>
 
-        <table class="table table-bordered">
+        <table class="table table-bordered table-striped">
             <thead>
                 <tr>
                     <th scope="col">Date & time</th>
