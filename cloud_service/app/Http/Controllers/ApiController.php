@@ -61,11 +61,16 @@ class ApiController extends Controller
              *     So, if a 'hardmax' is wanted, one could set
              *     max = 2*softmax-1, but then tehy might get at worst
              *     max/2-1 less results than expected.
+             *
+             *     Also, some results may be added due to the 'recency inclusion',
+             *     which includes all the recent results (within other filters).
              */
 
-            // take every ($downsampling)th row
+            // take every ($downsampling)th row,
+            // but always include most recent data
             if ($downsampling > 1)
-                $measurements->whereRaw("id MOD {$downsampling} = 0");
+                $measurements->whereRaw("id MOD {$downsampling} = 0")
+                    ->orWhere('created_at', '>=', $to->subMinute(5));
             /**
              * Better downsampling idea:
              *     Need to reduce results from $totalCount to $max.

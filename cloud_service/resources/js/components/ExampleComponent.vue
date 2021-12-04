@@ -58,7 +58,7 @@
 </template>
 
 <script>
-const MAX_MEASUREMENTS = 80;
+const MAX_MEASUREMENTS = 50;
 
 import { tempChartConfig, presChartConfig, humiChartConfig } from '../chart-configs.js'
 
