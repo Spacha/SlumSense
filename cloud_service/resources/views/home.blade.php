@@ -67,11 +67,11 @@
 
             <div class="card mt-3">
                 <div class="card-header">{{ __('Measurements') }}</div>
-                <div class="card-body">
+                
                     <!-- VUE -->
                     <div id="app">
                     <!-- VUE -->
-                </div>
+
             </div>
         </div>
     </div>
