@@ -52,20 +52,17 @@
                             </tr>
                             @endforelse
                         </tbody>
-                    </table>
-
-                    <!-- VUE -->
-                    <div id="app">
-                    <!-- VUE -->
-                        
+                    </table>                        
                     </div>
                 </div>
 
-            </div>
             <div class="card mt-3">
-
-                <!--<div id="app"></div>-->
-
+                <div class="card-header">{{ __('Measurements') }}</div>
+                <div class="card-body">
+                    <!-- VUE -->
+                    <div id="app">
+                    <!-- VUE -->
+                </div>
             </div>
         </div>
     </div>

@@ -1,10 +1,36 @@
 <template>
     <div>
-        <h4>Measurements</h4>
+        <!--
         <div class="mb-2">
             <a class="btn btn-secondary" v-on:click="getMeasurements"><i class="fa fa-sync"></i></a>
             <a href="/measurements" class="btn btn-primary">All measurements</a>
         </div>
+        -->
+        <div class="text-center">
+            <a class="btn btn-secondary" v-on:click="getMeasurements"><i class="fa fa-sync"></i></a>
+            <!--<a class="btn btn-secondary" v-on:click="addRandomMeasurement"><i class="fa fa-plus"></i></a>-->
+            <div class="btn-group">
+                <a class="btn btn-primary"
+                    v-for="period in periods"
+                    :class="{ active: period.hours == currentPeriod.hours}"
+                    v-on:click="changeMeasPeriod(period.hours)">
+                    {{ period.display }}
+                </a>
+                <!--
+                <a class="btn btn-primary" :class="{ active: measPeriod == 1}" v-on:click="changeMeasPeriod(1)">Last 1h</a>
+                <a class="btn btn-primary" :class="{ active: measPeriod == 6}" v-on:click="changeMeasPeriod(6)">Last 6h</a>
+                <a class="btn btn-primary" :class="{ active: measPeriod == 24}" v-on:click="changeMeasPeriod(24)">Last 24h</a>
+                <a class="btn btn-primary" :class="{ active: measPeriod == 168}" v-on:click="changeMeasPeriod(168)">Last week</a>
+                -->
+            </div>
+        </div>
+
+        <div>
+            <line-chart ref="tempChart" :period="currentPeriod" :config="tempChartConfig" />
+            <line-chart ref="presChart" :period="currentPeriod" :config="presChartConfig" />
+            <line-chart ref="humiChart" :period="currentPeriod" :config="humiChartConfig" />
+        </div>
+
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -15,11 +41,11 @@
                 </tr>
             </thead>
             <tbody v-if="measurements.length > 0">
-                <tr v-for="measurement in measurements.slice().reverse()">
-                    <td>{{ $datetime(measurement.created_at) }}</td>
-                    <td>{{ $temperature(measurement.temperature) }}</td>
-                    <td>{{ $pressure(measurement.pressure) }}</td>
-                    <td>{{ $humidity(measurement.humidity) }}</td>
+                <tr v-for="measurement in measurements">
+                    <td>{{ $format.datetime(measurement.created_at) }}</td>
+                    <td>{{ $format.temperature(measurement.temperature) }}</td>
+                    <td>{{ $format.pressure(measurement.pressure) }}</td>
+                    <td>{{ $format.humidity(measurement.humidity) }}</td>
                 </tr>
             </tbody>
             <tbody v-else>
@@ -34,9 +60,34 @@
 <script>
 const MAX_MEASUREMENTS = 50;
 
+import { tempChartConfig, presChartConfig, humiChartConfig } from '../chart-configs.js'
+
+class Period {
+    // period in hours
+    constructor(hours, display) {
+        this.hours = hours
+        this.display = display
+    }
+    getPeriod() {
+        return [moment().subtract(this.hours, 'hours'), moment()]
+    }
+}
+
+const periods = [
+    new Period(1, '1h'),
+    new Period(6, '6h'),
+    new Period(24, '24h'),
+    new Period(7*24, 'Week')
+]
+
 export default {
     data: () => ({
-        measurements: []
+        periods: periods,
+        currentPeriod: periods[0],
+        measurements: [],
+        tempChartConfig: tempChartConfig,
+        presChartConfig: presChartConfig,
+        humiChartConfig: humiChartConfig,
     }),
     mounted() {
         console.log('Component mounted.');
@@ -49,19 +100,58 @@ export default {
         });
         */
     },
+    computed: {
+        // computes the measurements to chartable format
+        // return 3 separate arrays: [temp, pres, humi]
+        chartData() {
+            var tempData = []
+            var presData = []
+            var humiData = []
+            var timestamp = null
+
+            this.measurements.forEach(m => {
+                timestamp = moment(m.created_at);
+                tempData.push({x: timestamp, y: m.temperature});
+                presData.push({x: timestamp, y: m.pressure});
+                humiData.push({x: timestamp, y: m.humidity});
+            });
+
+            return [tempData, presData, humiData];
+        }
+    },
     methods: {
-        getMeasurements()
-        {
+
+        addRandomMeasurement() {
+            this.addMeasurements([{
+                x: new Date(),
+                y: Math.random()*10
+            }])
+        },
+
+        addMeasurements(tempData, presData, humiData, clear = false) {
+            this.$refs.tempChart.addData(tempData, clear)
+            this.$refs.presChart.addData(presData, clear)
+            this.$refs.humiChart.addData(humiData, clear)
+        },
+
+        getMeasurements() {
             var mainContext = this
             axios.get(api_url(`measurements/${MAX_MEASUREMENTS}`))
             .then(function (response) {
                 // handle success
                 mainContext.measurements = response.data;
+                // const [tempData, presData, humiData] = mainContext.chartData;
+                mainContext.addMeasurements(...mainContext.chartData, true);
             })
             .catch(function (error) {
                 // handle error
                 console.log(error);
             });
+        },
+
+        changeMeasPeriod(hours) {
+            this.currentPeriod = this.periods.find(period => period.hours == hours);
+            this.getMeasurements();
         }
     }
 }

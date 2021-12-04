@@ -7,15 +7,21 @@
 import Vue from 'vue';
 require('./bootstrap');
 
+// Moment.js for time and date
 window.moment = require('moment');
 
-import { api_url, datetime, temperature, pressure, humidity } from './helpers.js';
+// Chart.js for graphing
+// import { Chart } from 'chart.js';
+// import 'chartjs-adapter-moment';
+
+// Local components
+import { api_url, Format } from './helpers.js';
 
 window.api_url = api_url;
-Vue.prototype.$datetime = datetime;
-Vue.prototype.$temperature = temperature;
-Vue.prototype.$pressure = pressure;
-Vue.prototype.$humidity = humidity;
+window.format = Format;             // for access outside Vue
+Vue.prototype.$format = Format;     // for access within Vue
+
+// console.log(window.Format.temperature(12.333))
 
 /**
  * The following block of code may be used to automatically register your
@@ -29,6 +35,7 @@ Vue.prototype.$humidity = humidity;
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
 
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
+Vue.component('line-chart', require('./components/LineChart.vue').default);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
