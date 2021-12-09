@@ -9,6 +9,20 @@ use App\AccessLevel;
  */
 trait HasAccessLevel
 {
+    /**
+     * Determine if the user is an administrator.
+     *
+     * @return bool
+     */
+    public function getIsAdminAttribute()
+    {
+        return $this->isAdmin();
+    }
+
+    /******************************************************
+     * General methods
+     *****************************************************/
+
     public function isViewer() : bool
     {
         return $this->access_level == AccessLevel::ACCESS_LEVEL_VIEWER;

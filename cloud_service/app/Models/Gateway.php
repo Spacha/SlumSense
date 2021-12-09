@@ -10,6 +10,13 @@ class Gateway extends Model
     use HasFactory;
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['is_active'];
+
+    /**
      * Get if the gateway is currently active.
      *
      * @return string

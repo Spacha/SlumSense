@@ -19,5 +19,11 @@ Route::get('/', function () {
 
 Auth::routes(['register' => env('APP_ALLOW_NEW_USERS')]);
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+// Cloud Dashboard
+Route::get('/home', [App\Http\Controllers\DashboardController::class, 'home'])->name('home');
+Route::get('/user', [App\Http\Controllers\DashboardController::class, 'user']);
+Route::get('/stats', [App\Http\Controllers\DashboardController::class, 'statistics']);
+Route::get('/management', [App\Http\Controllers\DashboardController::class, 'management']);
+Route::get('/measurements', [App\Http\Controllers\DashboardController::class, 'measurements']);
+
 Route::get('/measurements/{measurement}', [App\Http\Controllers\MeasurementController::class, 'show']);

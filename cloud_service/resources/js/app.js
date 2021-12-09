@@ -35,6 +35,7 @@ Vue.prototype.$format = Format;     // for access within Vue
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
 
 Vue.component('dashboard', require('./components/Dashboard.vue').default);
+Vue.component('management-panel', require('./components/ManagementPanel.vue').default);
 Vue.component('status-cards', require('./components/StatusCards.vue').default);
 Vue.component('measurements', require('./components/Measurements.vue').default);
 Vue.component('line-chart', require('./components/LineChart.vue').default);

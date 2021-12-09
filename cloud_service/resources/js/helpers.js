@@ -5,11 +5,16 @@ export function api_key_param() {
 // *****************************************************************************
 
 export function api_url(path, params = {}) {
-    let url = '/api/v1/' + path + api_key_param();  // add API key to the url
+    // let url = '/api/v1/' + path + api_key_param();  // add API key to the url
+    // let url = path + api_key_param();  // add API key to the url
+    let url = path;
 
     // add parameters to the url
-    for(const [key, value] of Object.entries(params)) {
-        url += `&${key}=${value}`;      // &key1=param1&key2=param2...
+    let first = true;
+    for (const [key, value] of Object.entries(params)) {
+        let prefix = first ? '?' : '&';
+        url += `${prefix}${key}=${value}`;      // &key1=param1&key2=param2...
+        if (first) first = false;
     }
     return url;
 }
