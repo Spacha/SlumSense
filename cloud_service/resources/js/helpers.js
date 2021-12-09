@@ -33,3 +33,14 @@ export class Format
     }
 }
 
+// *****************************************************************************
+
+export class Api {
+    static get(url, params) {
+        return axios.get(api_url(url, params))
+    }
+    
+    static post(url, params, data) {
+        return axios.post(api_url(url, params), data)
+    }
+}

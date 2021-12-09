@@ -23,6 +23,22 @@ class ApiController extends Controller
         //
     }
 
+    public function getStats()
+    {
+        // Get some statistics
+        $latestMeasurement = Measurement::latest()->first();
+
+        $stats = new \stdClass();
+        $stats->disabled_gateways    = Gateway::disabled()->count();
+        $stats->total_gateways       = Gateway::count();
+        $stats->latest_measurement   = !empty($latestMeasurement) ? $latestMeasurement->created_at->diffForHumans() : '';
+        $stats->total_measurements   = Measurement::count();
+        $stats->total_alerts         = 0;
+        $stats->muted_alerts         = 0;
+
+        return response()->json($stats);
+    }
+
     /**
      * Display a listing of the measurements.
      *

@@ -15,6 +15,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function() {
+    // Cloud API
     Route::get('measurements', [App\Http\Controllers\ApiController::class, 'listMeasurements']);
+    Route::get('stats', [App\Http\Controllers\ApiController::class, 'getStats']);
+
+    // Gateway API
     Route::post('measurements', [App\Http\Controllers\ApiController::class, 'storeMeasurement']);
 });

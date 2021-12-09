@@ -170,13 +170,13 @@ export default {
                 params.softmax = MAX_MEASUREMENTS
             }
 
-            axios.get(api_url(`measurements`, params))
-            .then(function (response) {
+            Api.get('measurements', params)
+            .then(response => {
                 // store the results & refresh the charts
                 mainContext.measurements = response.data;
                 mainContext.addMeasurements(...mainContext.chartData, true);
             })
-            .catch(function (error) {
+            .catch(error => {
                 // handle error (or not)
                 console.log(error);
             });

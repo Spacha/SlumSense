@@ -15,9 +15,9 @@ window.moment = require('moment');
 // import 'chartjs-adapter-moment';
 
 // Local components
-import { api_url, Format } from './helpers.js';
+import { Api, Format } from './helpers.js';
 
-window.api_url = api_url;
+window.Api = Api;
 window.format = Format;             // for access outside Vue
 Vue.prototype.$format = Format;     // for access within Vue
 
@@ -34,6 +34,8 @@ Vue.prototype.$format = Format;     // for access within Vue
 // const files = require.context('./', true, /\.vue$/i)
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
 
+Vue.component('dashboard', require('./components/Dashboard.vue').default);
+Vue.component('status-cards', require('./components/StatusCards.vue').default);
 Vue.component('measurements', require('./components/Measurements.vue').default);
 Vue.component('line-chart', require('./components/LineChart.vue').default);
 
@@ -45,5 +47,5 @@ Vue.component('line-chart', require('./components/LineChart.vue').default);
 
 const app = new Vue({
     el: '#app',
-    render: h => h('measurements')
+    render: h => h('dashboard')
 });
