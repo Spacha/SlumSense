@@ -31,8 +31,8 @@ export default {
     },
     methods: {
         refresh() {
-            this.$refs.stats.getStats()
-            this.$refs.measurements.getMeasurements()
+            this.$refs.stats.getStats();
+            this.$refs.measurements.getMeasurements();
         }
     }
 }
