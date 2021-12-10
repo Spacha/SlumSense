@@ -1,10 +1,10 @@
 <template>
     <div>
         <!-- Status cards -->
-        <status-cards ref="stats" />
+        <status-cards ref="stats" :user-is-admin="userIsAdmin" />
 
         <!-- Manager panel -->
-        <management-panel v-if="user.is_admin" />
+        <management-panel v-if="userIsAdmin" />
 
         <div class="card mt-3">
             <div class="card-header">Measurements</div>
@@ -27,7 +27,9 @@ export default {
             .catch(err => console.log(err));
     },
     computed: {
-        //
+        userIsAdmin() {
+            return this.user.is_admin == "true"
+        }
     },
     methods: {
         refresh() {
