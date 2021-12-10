@@ -28,7 +28,7 @@ export default {
     },
     computed: {
         userIsAdmin() {
-            return this.user.is_admin == "true"
+            return !!this.user.is_admin;
         }
     },
     methods: {
