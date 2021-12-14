@@ -23,3 +23,7 @@ On the gateway device:
 ```shell
 $ export SLUMWAY_API_KEY=MyAPIKeyDefinedInCloudSrvr
 ```
+Then start the program in the background:
+```shell
+$ nohup python3 main.py &
+```
