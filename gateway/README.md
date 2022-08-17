@@ -23,6 +23,9 @@ On the gateway device:
 ```shell
 $ export SLUMWAY_API_KEY=MyAPIKeyDefinedInCloudSrvr
 ```
+OR, to make the API key persist in the system, it is better to add the environment key to the end of the `/etc/environment` file: `SLUMWAY_API_KEY=MyAPIKeyDefinedInCloudSrvr`. Reboot the device and the key should be available.
+
+
 Then start the program in the background:
 ```shell
 $ nohup python3 main.py &
